@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Am / Is / Are – Practice!</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: linear-gradient(180deg, #87CEEB 0%, #b3e5fc 45%, #c8e6c9 100%);
+  min-height: 100vh;
+  padding: 16px 14px 56px;
+  user-select: none;
+}
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes bounceEl {
+  0%,100%{ transform:translateY(0); }
+  40%{ transform:translateY(-10px); }
+  70%{ transform:translateY(-4px); }
+}
+@keyframes shakeEl {
+  0%,100%{ transform:translateX(0); }
+  20%{ transform:translateX(-8px); }
+  40%{ transform:translateX(8px); }
+  60%{ transform:translateX(-5px); }
+  80%{ transform:translateX(5px); }
+}
+@keyframes floatUp {
+  0%   { opacity:1; transform:translateY(0) scale(1); }
+  80%  { opacity:1; }
+  100% { opacity:0; transform:translateY(-80px) scale(1.3); }
+}
+
+/* ══════════ SETUP ══════════ */
+#setupScreen {
+  max-width: 500px; margin: 24px auto;
+  background: #fff; border-radius: 28px; padding: 32px 26px 28px;
+  box-shadow: 0 8px 0 rgba(0,0,0,0.14); border: 3px solid #FFE082;
+  text-align: center; animation: popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+#setupScreen h1 {
+  font-family:'Fredoka One',cursive; font-size:2.1rem; color:#1565C0;
+  text-shadow:2px 3px 0 #BBDEFB; margin-bottom:4px;
+}
+#setupScreen p.sub { color:#78909C; font-weight:700; font-size:0.9rem; margin-bottom:24px; }
+.setup-section { margin-bottom:20px; text-align:left; }
+.setup-section > label {
+  font-weight:800; font-size:0.85rem; color:#37474F;
+  text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:9px;
+}
+.pill-row { display:flex; gap:9px; flex-wrap:wrap; }
+.pill-btn {
+  flex:1; min-width:80px; font-family:'Fredoka One',cursive; font-size:1rem;
+  padding:10px 8px; border-radius:14px; border:3px solid #B0BEC5;
+  cursor:pointer; background:#ECEFF1; color:#546E7A;
+  transition:all 0.15s; box-shadow:0 4px 0 #90A4AE;
+}
+.pill-btn.active { background:#E3F2FD; border-color:#42A5F5; color:#1565C0; box-shadow:0 4px 0 #1976D2; }
+.pill-btn:hover:not(.active) { transform:translateY(-2px); }
+.tc-row { display:flex; gap:10px; justify-content:center; }
+.tc-btn {
+  font-family:'Fredoka One',cursive; font-size:1.3rem; width:52px; height:52px;
+  border-radius:50%; border:3px solid #B0BEC5; cursor:pointer;
+  background:#ECEFF1; color:#546E7A; transition:all 0.15s; box-shadow:0 4px 0 #90A4AE;
+}
+.tc-btn.active { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; box-shadow:0 4px 0 #388E3C; }
+#teamNamesSection { display:none; }
+.team-name-inputs { display:flex; flex-direction:column; gap:9px; margin-top:4px; }
+.team-name-row { display:flex; align-items:center; gap:9px; }
+.team-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; }
+.team-name-input {
+  flex:1; font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem;
+  padding:8px 13px; border-radius:11px; border:3px solid #B0BEC5; outline:none; color:#37474F;
+  transition:border-color 0.15s;
+}
+.team-name-input:focus { border-color:#42A5F5; }
+.start-btn {
+  font-family:'Fredoka One',cursive; font-size:1.25rem; padding:13px 38px;
+  background:#66BB6A; color:#fff; border:3px solid #388E3C; border-radius:50px;
+  cursor:pointer; box-shadow:0 6px 0 #2E7D32; transition:transform 0.1s,box-shadow 0.1s; margin-top:6px;
+}
+.start-btn:hover { transform:translateY(-3px); }
+.start-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #2E7D32; }
+
+/* activity type badge chips */
+.type-chips { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+.type-chip {
+  font-size:0.75rem; font-weight:800; padding:5px 12px; border-radius:50px;
+  border:2px solid; letter-spacing:0.3px;
+}
+.chip-drag { background:#E8F5E9; border-color:#66BB6A; color:#2E7D32; }
+.chip-tf   { background:#E3F2FD; border-color:#42A5F5; color:#1565C0; }
+.chip-mc   { background:#FFF3E0; border-color:#FFB74D; color:#E65100; }
+.chip-sc   { background:#FCE4EC; border-color:#F48FB1; color:#AD1457; }
+
+/* ══════════ GAME ══════════ */
+#gameScreen { display:none; max-width:640px; margin:0 auto; }
+
+/* scoreboards */
+#scoreboards { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.scoreboard {
+  flex:1; min-width:90px; border-radius:17px; padding:9px 10px; text-align:center;
+  border:3px solid; box-shadow:0 5px 0; transition:transform 0.2s,box-shadow 0.2s; background:#fff;
+}
+.scoreboard.active-team { transform:translateY(-5px); box-shadow:0 10px 0 !important; }
+.scoreboard .team-name { font-family:'Fredoka One',cursive; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.scoreboard .team-pts  { font-family:'Fredoka One',cursive; font-size:1.9rem; line-height:1.1; }
+.scoreboard .team-pts-label { font-size:0.65rem; font-weight:800; opacity:0.7; text-transform:uppercase; }
+#turnBanner {
+  text-align:center; padding:9px 16px; border-radius:50px;
+  font-family:'Fredoka One',cursive; font-size:1.05rem; color:#fff;
+  margin-bottom:11px; text-shadow:1px 2px 0 rgba(0,0,0,0.2);
+  box-shadow:0 4px 0 rgba(0,0,0,0.15); transition:background 0.3s; display:none;
+}
+
+/* progress */
+.progress-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.progress-label { font-size:0.78rem; font-weight:700; color:#fff; white-space:nowrap; text-shadow:1px 1px 0 rgba(0,0,0,0.2); }
+.progress-bar-wrap { flex:1; background:rgba(255,255,255,0.45); border-radius:50px; height:12px; overflow:hidden; border:2px solid #fff; }
+.progress-bar { height:100%; background:linear-gradient(90deg,#66BB6A,#FFD54F); border-radius:50px; transition:width 0.45s ease; }
+/* activity type badge */
+.qtype-badge {
+  font-size:0.7rem; font-weight:800; padding:4px 10px; border-radius:50px; border:2px solid; white-space:nowrap;
+}
+
+/* question card */
+.question-card {
+  background:#FFFDE7; border-radius:24px; padding:24px 20px 20px;
+  box-shadow:0 6px 0 rgba(0,0,0,0.14); border:3px solid #FFE082; text-align:center;
+  animation:popIn 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  min-height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+}
+.emoji-icon { font-size:2.6rem; line-height:1; }
+.q-label { font-size:0.78rem; font-weight:800; color:#90A4AE; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+.sentence {
+  font-size:clamp(1.05rem,4vw,1.45rem); font-weight:800; color:#37474F; line-height:2.4; margin-top:4px;
+}
+.hint { font-size:0.78rem; color:#90A4AE; font-weight:700; }
+.feedback { font-size:0.98rem; font-weight:800; min-height:24px; color:#2E7D32; margin-top:3px; }
+.feedback.wrong-text { color:#C62828; }
+
+/* ── DRAG & DROP ── */
+.drop-zone {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:86px; height:44px; border:3px dashed #42A5F5; border-radius:13px;
+  margin:0 5px; vertical-align:middle; background:#E3F2FD; color:#1565C0;
+  font-family:'Fredoka One',cursive; font-size:1.3rem;
+  transition:background 0.2s,border-color 0.2s,transform 0.15s;
+}
+.drop-zone.drag-over { background:#BBDEFB; border-color:#1565C0; transform:scale(1.08); }
+.drop-zone.filled    { border-style:solid; background:#fff; }
+.drop-zone.correct-zone { background:#E8F5E9; border-color:#2E7D32; color:#2E7D32; animation:bounceEl 0.45s; }
+.drop-zone.wrong-zone   { background:#FFEBEE; border-color:#C62828; color:#C62828; animation:shakeEl 0.4s; }
+.word-bank-label {
+  text-align:center; font-weight:800; font-size:0.8rem; color:#fff;
+  text-shadow:1px 1px 0 rgba(0,0,0,0.2); margin:13px 0 7px;
+  letter-spacing:0.5px; text-transform:uppercase;
+}
+.word-bank { display:flex; justify-content:center; gap:11px; flex-wrap:wrap; }
+.tile {
+  font-family:'Fredoka One',cursive; font-size:1.4rem; padding:10px 26px; border-radius:15px;
+  cursor:grab; border:3px solid; box-shadow:0 6px 0; background:#fff;
+  transition:transform 0.12s,opacity 0.2s; touch-action:none;
+}
+.tile:hover:not(.used) { transform:translateY(-4px); }
+.tile.dragging { opacity:0.28; transform:scale(0.94); }
+.tile.used { opacity:0.2; cursor:not-allowed; pointer-events:none; }
+.tile-am  { color:#2E7D32; border-color:#66BB6A; box-shadow:0 6px 0 #388E3C; }
+.tile-is  { color:#1565C0; border-color:#42A5F5; box-shadow:0 6px 0 #1976D2; }
+.tile-are { color:#7B1FA2; border-color:#CE93D8; box-shadow:0 6px 0 #8E24AA; }
+
+/* ── TRUE / FALSE ── */
+.tf-btns { display:flex; gap:14px; margin-top:14px; justify-content:center; }
+.tf-btn {
+  font-family:'Fredoka One',cursive; font-size:1.35rem; padding:13px 34px;
+  border-radius:50px; border:3px solid; cursor:pointer; box-shadow:0 6px 0;
+  background:#fff; transition:transform 0.1s,box-shadow 0.1s;
+}
+.tf-btn:hover { transform:translateY(-4px); }
+.tf-btn:active { transform:translateY(2px); }
+.tf-true  { color:#2E7D32; border-color:#66BB6A; box-shadow:0 6px 0 #388E3C; }
+.tf-false { color:#C62828; border-color:#EF9A9A; box-shadow:0 6px 0 #B71C1C; }
+.tf-btn.correct { background:#E8F5E9 !important; border-color:#2E7D32 !important; color:#2E7D32 !important; animation:bounceEl 0.4s; }
+.tf-btn.wrong   { background:#FFEBEE !important; border-color:#C62828 !important; color:#C62828 !important; animation:shakeEl 0.4s; }
+.tf-sentence { font-size:clamp(1rem,3.5vw,1.35rem); font-weight:800; color:#37474F; line-height:1.5; margin-top:8px; }
+.tf-verb { color:#1565C0; }
+
+/* ── MULTIPLE CHOICE ── */
+.mc-options { display:flex; flex-direction:column; gap:9px; margin-top:14px; width:100%; max-width:400px; }
+.mc-btn {
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:1.05rem;
+  padding:11px 18px; border-radius:14px; border:3px solid #B0BEC5;
+  cursor:pointer; background:#fff; color:#37474F; text-align:left;
+  box-shadow:0 4px 0 #90A4AE; transition:transform 0.1s,box-shadow 0.1s;
+  display:flex; align-items:center; gap:10px;
+}
+.mc-btn:hover { transform:translateY(-3px); box-shadow:0 7px 0 #90A4AE; }
+.mc-letter {
+  font-family:'Fredoka One',cursive; font-size:1.1rem; width:28px; height:28px;
+  border-radius:50%; background:#ECEFF1; color:#546E7A;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.mc-btn.correct { background:#E8F5E9 !important; border-color:#2E7D32 !important; color:#2E7D32 !important; box-shadow:0 4px 0 #388E3C !important; animation:bounceEl 0.4s; }
+.mc-btn.correct .mc-letter { background:#2E7D32; color:#fff; }
+.mc-btn.wrong   { background:#FFEBEE !important; border-color:#C62828 !important; color:#C62828 !important; box-shadow:0 4px 0 #B71C1C !important; animation:shakeEl 0.4s; }
+.mc-btn.wrong .mc-letter { background:#C62828; color:#fff; }
+.mc-btn.reveal  { background:#E8F5E9 !important; border-color:#2E7D32 !important; color:#2E7D32 !important; }
+.mc-btn.reveal .mc-letter { background:#2E7D32; color:#fff; }
+
+/* ── SENTENCE CREATOR ── */
+.sc-prompt { font-size:clamp(0.9rem,3.2vw,1.1rem); font-weight:800; color:#546E7A; margin-top:4px; line-height:1.5; }
+.sc-subject-badge {
+  display:inline-block; background:#E3F2FD; color:#1565C0; border:2px solid #42A5F5;
+  border-radius:10px; padding:3px 12px; font-family:'Fredoka One',cursive; font-size:1.05rem; margin:0 4px;
+}
+/* DROP ZONE — the sentence build area */
+.sc-build-area {
+  display:flex; flex-wrap:wrap; gap:7px; justify-content:center; align-items:center;
+  min-height:62px; border:3px dashed #CE93D8; border-radius:16px;
+  padding:10px 14px; margin-top:10px; background:#FCE4EC; width:100%; max-width:460px;
+  transition:background 0.2s, border-color 0.2s;
+}
+.sc-build-area.drag-over-zone { background:#F3E5F5; border-color:#AB47BC; border-style:solid; }
+.sc-build-area.has-words { border-style:solid; background:#FFF0F5; }
+.sc-placeholder { color:#CE93D8; font-weight:800; font-size:0.88rem; pointer-events:none; }
+/* word bank below */
+.sc-word-tiles { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:11px; width:100%; max-width:460px; }
+/* draggable source tiles */
+.sc-tile {
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:8px 16px;
+  border-radius:12px; cursor:grab; border:3px solid #CE93D8;
+  background:#fff; color:#7B1FA2; box-shadow:0 4px 0 #8E24AA;
+  transition:transform 0.1s, opacity 0.15s; touch-action:none;
+}
+.sc-tile:hover:not(.placed) { transform:translateY(-3px); }
+.sc-tile.sc-dragging { opacity:0.25; transform:scale(0.93); }
+.sc-tile.placed { opacity:0.2; pointer-events:none; cursor:default; }
+/* placed words inside build area */
+.sc-placed-word {
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:7px 14px;
+  border-radius:11px; background:#fff; color:#7B1FA2; border:3px solid #7B1FA2;
+  cursor:grab; touch-action:none; transition:transform 0.1s, opacity 0.15s;
+  box-shadow:0 3px 0 #6A1B9A;
+}
+.sc-placed-word:hover { transform:translateY(-2px); }
+.sc-placed-word.sc-dragging { opacity:0.25; transform:scale(0.93); }
+/* return zone label */
+.sc-return-label {
+  text-align:center; font-size:0.75rem; font-weight:800; color:#CE93D8;
+  text-transform:uppercase; letter-spacing:0.4px; margin-top:4px;
+}
+.sc-check-btn {
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:10px 26px;
+  background:#AB47BC; color:#fff; border:3px solid #7B1FA2; border-radius:50px;
+  cursor:pointer; box-shadow:0 5px 0 #6A1B9A; transition:transform 0.1s; margin-top:11px;
+}
+.sc-check-btn:hover { transform:translateY(-3px); }
+.sc-check-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #6A1B9A; }
+.sc-check-btn:disabled { opacity:0.38; pointer-events:none; }
+.sc-result { border-radius:14px; padding:10px 16px; margin-top:9px; font-weight:800; font-size:0.92rem; width:100%; max-width:460px; }
+.sc-result.correct-res { background:#E8F5E9; color:#2E7D32; border:2px solid #66BB6A; }
+.sc-result.wrong-res   { background:#FFEBEE; color:#C62828; border:2px solid #EF9A9A; }
+/* ghost for SC touch drag */
+#scGhost {
+  position:fixed; pointer-events:none; z-index:10000; display:none;
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:8px 16px;
+  border-radius:12px; border:3px solid #CE93D8; background:#fff; color:#7B1FA2;
+  box-shadow:0 10px 24px rgba(0,0,0,0.25); opacity:0.92; transform:scale(1.1);
+}
+
+/* bottom bar */
+.bottom-bar { display:flex; justify-content:space-between; align-items:center; margin-top:13px; }
+.solo-score { background:rgba(255,255,255,0.7); border-radius:50px; padding:7px 18px; font-weight:800; font-size:0.92rem; color:#37474F; border:2px solid #fff; }
+.next-btn {
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:10px 24px;
+  background:#FF7043; color:#fff; border:3px solid #E64A19; border-radius:50px;
+  cursor:pointer; box-shadow:0 5px 0 #BF360C; transition:transform 0.1s; display:none;
+}
+.next-btn:hover { transform:translateY(-2px); }
+.next-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #BF360C; }
+
+/* point popup */
+#pointPopup {
+  position:fixed; pointer-events:none; z-index:9998;
+  font-family:'Fredoka One',cursive; font-size:1.9rem; color:#fff;
+  text-shadow:2px 3px 0 rgba(0,0,0,0.2); display:none;
+  animation:floatUp 1s ease-out forwards;
+}
+
+/* ══════════ FINAL ══════════ */
+#finalScreen {
+  display:none; text-align:center; background:#fff; border-radius:26px;
+  padding:30px 20px; box-shadow:0 6px 0 rgba(0,0,0,0.14); border:3px solid #FFD54F;
+  animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); max-width:640px; margin:0 auto;
+}
+.final-emoji { font-size:3.8rem; margin-bottom:8px; }
+#finalScreen h2 { font-family:'Fredoka One',cursive; font-size:1.9rem; color:#F57F17; margin-bottom:4px; }
+.final-podium { display:flex; justify-content:center; gap:9px; margin:14px 0; flex-wrap:wrap; }
+.podium-card { border-radius:17px; padding:13px 16px; text-align:center; border:3px solid; min-width:95px; flex:1; max-width:155px; }
+.podium-card .place { font-size:1.7rem; }
+.podium-card .p-name { font-family:'Fredoka One',cursive; font-size:1rem; margin:3px 0 2px; }
+.podium-card .p-pts  { font-family:'Fredoka One',cursive; font-size:1.5rem; }
+.final-msg { font-size:0.98rem; font-weight:700; color:#546E7A; margin:8px 0 18px; }
+.end-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.restart-btn {
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:11px 28px;
+  background:#66BB6A; color:#fff; border:3px solid #388E3C; border-radius:50px;
+  cursor:pointer; box-shadow:0 5px 0 #2E7D32; transition:transform 0.1s;
+}
+.restart-btn:hover { transform:translateY(-3px); }
+.setup-again-btn {
+  font-family:'Fredoka One',cursive; font-size:1.05rem; padding:11px 28px;
+  background:#FF7043; color:#fff; border:3px solid #E64A19; border-radius:50px;
+  cursor:pointer; box-shadow:0 5px 0 #BF360C; transition:transform 0.1s;
+}
+.setup-again-btn:hover { transform:translateY(-3px); }
+
+/* touch ghost */
+#ghostTile {
+  position:fixed; pointer-events:none; z-index:9999; display:none;
+  font-family:'Fredoka One',cursive; font-size:1.4rem; padding:10px 26px;
+  border-radius:15px; border:3px solid; background:#fff;
+  box-shadow:0 12px 28px rgba(0,0,0,0.28); opacity:0.93; transform:scale(1.1);
+}
+.team-only { display:none; }
+</style>
+</head>
+<body>
+<div id="ghostTile"></div>
+<div id="scGhost"></div>
+<div id="pointPopup"></div>
+
+<!-- ══════════ SETUP ══════════ -->
+<div id="setupScreen">
+  <h1>☀️ Am · Is · Are</h1>
+  <p class="sub">Choose your mode and start playing!</p>
+
+  <div class="setup-section">
+    <label>Player Mode</label>
+    <div class="pill-row">
+      <button class="pill-btn active" id="btnSolo" onclick="selectMode('solo')">🙋 Solo</button>
+      <button class="pill-btn" id="btnTeam" onclick="selectMode('team')">👥 Teams</button>
+    </div>
+  </div>
+
+  <div class="setup-section" id="teamNamesSection">
+    <label>Number of Teams</label>
+    <div class="tc-row" style="margin-bottom:14px">
+      <button class="tc-btn active" id="tc2" onclick="selectTeamCount(2)">2</button>
+      <button class="tc-btn" id="tc3" onclick="selectTeamCount(3)">3</button>
+      <button class="tc-btn" id="tc4" onclick="selectTeamCount(4)">4</button>
+    </div>
+    <label>Team Names</label>
+    <div class="team-name-inputs" id="teamNameInputs"></div>
+  </div>
+
+  <div class="setup-section">
+    <label>Activity Types <span style="font-weight:400;text-transform:none;font-size:0.8rem;color:#90A4AE">(all included)</span></label>
+    <div class="type-chips">
+      <span class="type-chip chip-drag">🎯 Drag &amp; Drop</span>
+      <span class="type-chip chip-tf">✅ True / False</span>
+      <span class="type-chip chip-mc">🔤 Multiple Choice</span>
+      <span class="type-chip chip-sc">✍️ Drag &amp; Build</span>
+    </div>
+  </div>
+
+  <button class="start-btn" onclick="startGame()">▶ Start!</button>
+</div>
+
+<!-- ══════════ GAME ══════════ -->
+<div id="gameScreen">
+  <div id="scoreboards" class="team-only"></div>
+  <div id="turnBanner"></div>
+
+  <div class="progress-row">
+    <div class="progress-label" id="progressLabel">1 / 20</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:5%"></div></div>
+    <div class="qtype-badge" id="qtypeBadge"></div>
+  </div>
+
+  <div class="question-card" id="questionCard">
+    <div class="emoji-icon" id="emojiIcon">☀️</div>
+    <div class="q-label" id="qLabel"></div>
+    <div id="questionBody"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- drag tiles (shown only for drag questions) -->
+  <div class="word-bank-label" id="wbLabel" style="display:none">Drag the right word to the blank!</div>
+  <div class="word-bank" id="wordBank" style="display:none">
+    <div class="tile tile-am"  draggable="true" id="tile-am"  data-word="am">am</div>
+    <div class="tile tile-is"  draggable="true" id="tile-is"  data-word="is">is</div>
+    <div class="tile tile-are" draggable="true" id="tile-are" data-word="are">are</div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="solo-score" id="soloScore" style="display:none">⭐ Score: <span id="scoreEl">0</span></div>
+    <div style="flex:1"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next →</button>
+  </div>
+</div>
+
+<!-- ══════════ FINAL ══════════ -->
+<div id="finalScreen">
+  <div class="final-emoji" id="finalEmoji">🎉</div>
+  <h2 id="finalTitle">You finished!</h2>
+  <div class="final-podium" id="finalPodium"></div>
+  <div class="final-msg" id="finalMsg"></div>
+  <div class="end-btns">
+    <button class="restart-btn" onclick="restartSame()">🔄 Play Again</button>
+    <button class="setup-again-btn" onclick="goSetup()">⚙️ Change Mode</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════
+
+// DRAG & DROP questions
+const dragQ = [
+  { sentence:"I ___ a student.",                     answer:"am",  hint:"💡 I",             emoji:"🎒" },
+  { sentence:"She ___ my teacher.",                   answer:"is",  hint:"💡 She",            emoji:"👩‍🏫" },
+  { sentence:"They ___ my friends.",                  answer:"are", hint:"💡 They",           emoji:"👫" },
+  { sentence:"The dog ___ very cute.",                answer:"is",  hint:"💡 The dog",        emoji:"🐶" },
+  { sentence:"We ___ in class now.",                  answer:"are", hint:"💡 We",             emoji:"🏫" },
+  { sentence:"I ___ ten years old.",                  answer:"am",  hint:"💡 I",              emoji:"🎂" },
+  { sentence:"You ___ very smart!",                   answer:"are", hint:"💡 You",            emoji:"🌟" },
+  { sentence:"The cats ___ on the roof.",             answer:"are", hint:"💡 The cats",       emoji:"🐱" },
+  { sentence:"It ___ very cold today.",               answer:"is",  hint:"💡 It",             emoji:"🥶" },
+  { sentence:"My brother ___ tall.",                  answer:"is",  hint:"💡 My brother",     emoji:"🧍" },
+  { sentence:"I ___ hungry right now.",               answer:"am",  hint:"💡 I",              emoji:"🍕" },
+  { sentence:"The birds ___ singing.",                answer:"are", hint:"💡 The birds",      emoji:"🐦" },
+  { sentence:"She ___ at the park.",                  answer:"is",  hint:"💡 She",            emoji:"🌳" },
+  { sentence:"He ___ my best friend.",                answer:"is",  hint:"💡 He",             emoji:"🤝" },
+  { sentence:"The flowers ___ beautiful.",            answer:"are", hint:"💡 The flowers",    emoji:"🌸" },
+  { sentence:"I ___ ready to learn!",                answer:"am",  hint:"💡 I",              emoji:"✏️" },
+  { sentence:"Our teacher ___ very kind.",            answer:"is",  hint:"💡 Our teacher",    emoji:"😊" },
+  { sentence:"The children ___ in the playground.",   answer:"are", hint:"💡 The children",   emoji:"🛝" },
+  { sentence:"It ___ a sunny day.",                   answer:"is",  hint:"💡 It",             emoji:"☀️" },
+  { sentence:"I ___ from Spain.",                     answer:"am",  hint:"💡 I",              emoji:"🌍" },
+  { sentence:"The book ___ on the desk.",             answer:"is",  hint:"💡 The book",       emoji:"📚" },
+  { sentence:"My parents ___ very funny.",            answer:"are", hint:"💡 My parents",     emoji:"😂" },
+  { sentence:"The sky ___ blue.",                     answer:"is",  hint:"💡 The sky",        emoji:"🌤️" },
+  { sentence:"I ___ good at football.",              answer:"am",  hint:"💡 I",              emoji:"⚽" },
+  { sentence:"The pizza ___ delicious!",              answer:"is",  hint:"💡 The pizza",      emoji:"🍕" },
+  { sentence:"The boys ___ playing outside.",         answer:"are", hint:"💡 The boys",       emoji:"🏃" },
+  { sentence:"I ___ excited for the weekend.",        answer:"am",  hint:"💡 I",              emoji:"🎉" },
+  { sentence:"My cat ___ very lazy.",                 answer:"is",  hint:"💡 My cat",         emoji:"😴" },
+  { sentence:"The apples ___ red and sweet.",         answer:"are", hint:"💡 The apples",     emoji:"🍎" },
+  { sentence:"He ___ a very good singer.",            answer:"is",  hint:"💡 He",             emoji:"🎤" },
+  { sentence:"I ___ at home today.",                  answer:"am",  hint:"💡 I",              emoji:"🏠" },
+  { sentence:"The students ___ very quiet.",          answer:"are", hint:"💡 The students",   emoji:"🤫" },
+  { sentence:"The moon ___ big and bright.",          answer:"is",  hint:"💡 The moon",       emoji:"🌕" },
+  { sentence:"You ___ my favourite student.",         answer:"are", hint:"💡 You",            emoji:"💛" },
+  { sentence:"We ___ a great team!",                  answer:"are", hint:"💡 We",             emoji:"🏆" },
+].map(q=>({...q,type:'drag'}));
+
+// TRUE / FALSE questions  (sentence uses correct or wrong verb; students judge)
+const tfQ = [
+  { sentence:"I is a student.",        correct:false, rightVerb:"am",  emoji:"🎒",  hint:"💡 Think about: I" },
+  { sentence:"She is my teacher.",     correct:true,  rightVerb:"is",  emoji:"👩‍🏫", hint:"💡 Think about: She" },
+  { sentence:"They is my friends.",    correct:false, rightVerb:"are", emoji:"👫",  hint:"💡 Think about: They" },
+  { sentence:"We are happy.",          correct:true,  rightVerb:"are", emoji:"😄",  hint:"💡 Think about: We" },
+  { sentence:"He are tall.",           correct:false, rightVerb:"is",  emoji:"🧍",  hint:"💡 Think about: He" },
+  { sentence:"I am ready!",            correct:true,  rightVerb:"am",  emoji:"✏️",  hint:"💡 Think about: I" },
+  { sentence:"The dog are cute.",      correct:false, rightVerb:"is",  emoji:"🐶",  hint:"💡 Think about: The dog" },
+  { sentence:"You are very smart.",    correct:true,  rightVerb:"are", emoji:"🌟",  hint:"💡 Think about: You" },
+  { sentence:"It are cold today.",     correct:false, rightVerb:"is",  emoji:"🥶",  hint:"💡 Think about: It" },
+  { sentence:"The cats are on the roof.", correct:true,rightVerb:"are",emoji:"🐱",  hint:"💡 Think about: The cats" },
+  { sentence:"She am at the park.",    correct:false, rightVerb:"is",  emoji:"🌳",  hint:"💡 Think about: She" },
+  { sentence:"I are ten years old.",   correct:false, rightVerb:"am",  emoji:"🎂",  hint:"💡 Think about: I" },
+  { sentence:"The birds are singing.", correct:true,  rightVerb:"are", emoji:"🐦",  hint:"💡 Think about: The birds" },
+  { sentence:"He is my best friend.",  correct:true,  rightVerb:"is",  emoji:"🤝",  hint:"💡 Think about: He" },
+  { sentence:"We is a great team.",    correct:false, rightVerb:"are", emoji:"🏆",  hint:"💡 Think about: We" },
+  { sentence:"The sky is blue.",       correct:true,  rightVerb:"is",  emoji:"🌤️", hint:"💡 Think about: The sky" },
+  { sentence:"My parents is funny.",   correct:false, rightVerb:"are", emoji:"😂",  hint:"💡 Think about: My parents" },
+  { sentence:"I am from Spain.",       correct:true,  rightVerb:"am",  emoji:"🌍",  hint:"💡 Think about: I" },
+  { sentence:"The moon are big.",      correct:false, rightVerb:"is",  emoji:"🌕",  hint:"💡 Think about: The moon" },
+  { sentence:"You are my friend.",     correct:true,  rightVerb:"are", emoji:"💛",  hint:"💡 Think about: You" },
+].map(q=>({...q,type:'tf'}));
+
+// MULTIPLE CHOICE questions
+const mcQ = [
+  { question:"___ you happy today?",         subject:"you",        answer:"Are", options:["Am","Is","Are"],   emoji:"😊" },
+  { question:"___ she your sister?",         subject:"she",        answer:"Is",  options:["Am","Is","Are"],   emoji:"👧" },
+  { question:"___ I late?",                  subject:"I",          answer:"Am",  options:["Am","Is","Are"],   emoji:"⏰" },
+  { question:"___ they playing football?",   subject:"they",       answer:"Are", options:["Am","Is","Are"],   emoji:"⚽" },
+  { question:"___ it raining outside?",      subject:"it",         answer:"Is",  options:["Am","Is","Are"],   emoji:"🌧️" },
+  { question:"___ we in the right room?",    subject:"we",         answer:"Are", options:["Am","Is","Are"],   emoji:"🚪" },
+  { question:"___ he your brother?",         subject:"he",         answer:"Is",  options:["Am","Is","Are"],   emoji:"👦" },
+  { question:"___ I a good student?",        subject:"I",          answer:"Am",  options:["Am","Is","Are"],   emoji:"🎒" },
+  { question:"___ the flowers pretty?",      subject:"the flowers",answer:"Are", options:["Am","Is","Are"],   emoji:"🌸" },
+  { question:"___ the pizza hot?",           subject:"the pizza",  answer:"Is",  options:["Am","Is","Are"],   emoji:"🍕" },
+  { question:"___ you and I friends?",       subject:"you and I",  answer:"Are", options:["Am","Is","Are"],   emoji:"🤝" },
+  { question:"___ the cat on the sofa?",     subject:"the cat",    answer:"Is",  options:["Am","Is","Are"],   emoji:"🐱" },
+  { question:"___ I dreaming?",              subject:"I",          answer:"Am",  options:["Am","Is","Are"],   emoji:"💭" },
+  { question:"___ the children loud?",       subject:"the children",answer:"Are",options:["Am","Is","Are"],   emoji:"📢" },
+  { question:"___ it a good idea?",          subject:"it",         answer:"Is",  options:["Am","Is","Are"],   emoji:"💡" },
+  { question:"___ she a good singer?",       subject:"she",        answer:"Is",  options:["Am","Is","Are"],   emoji:"🎤" },
+  { question:"___ they your classmates?",    subject:"they",       answer:"Are", options:["Am","Is","Are"],   emoji:"🏫" },
+  { question:"___ I correct?",               subject:"I",          answer:"Am",  options:["Am","Is","Are"],   emoji:"✅" },
+  { question:"___ the book interesting?",    subject:"the book",   answer:"Is",  options:["Am","Is","Are"],   emoji:"📖" },
+  { question:"___ we ready to start?",       subject:"we",         answer:"Are", options:["Am","Is","Are"],   emoji:"🚀" },
+].map(q=>({...q,type:'mc'}));
+
+// SENTENCE CREATOR — scrambled words, student assembles correct sentence
+const scQ = [
+  { subject:"I",          verb:"am",  rest:"a good student",   words:["I","am","a","good","student"],          emoji:"🎒" },
+  { subject:"She",        verb:"is",  rest:"very tall",         words:["She","is","very","tall"],               emoji:"🧍‍♀️" },
+  { subject:"They",       verb:"are", rest:"my best friends",   words:["They","are","my","best","friends"],     emoji:"👫" },
+  { subject:"We",         verb:"are", rest:"in the classroom",  words:["We","are","in","the","classroom"],      emoji:"🏫" },
+  { subject:"He",         verb:"is",  rest:"very funny",        words:["He","is","very","funny"],               emoji:"😂" },
+  { subject:"I",          verb:"am",  rest:"ten years old",     words:["I","am","ten","years","old"],           emoji:"🎂" },
+  { subject:"The dog",    verb:"is",  rest:"very cute",         words:["The","dog","is","very","cute"],         emoji:"🐶" },
+  { subject:"You",        verb:"are", rest:"a great student",   words:["You","are","a","great","student"],      emoji:"⭐" },
+  { subject:"It",         verb:"is",  rest:"a sunny day",       words:["It","is","a","sunny","day"],            emoji:"☀️" },
+  { subject:"The birds",  verb:"are", rest:"singing",           words:["The","birds","are","singing"],          emoji:"🐦" },
+  { subject:"I",          verb:"am",  rest:"happy today",       words:["I","am","happy","today"],               emoji:"😊" },
+  { subject:"The flowers",verb:"are", rest:"beautiful",         words:["The","flowers","are","beautiful"],      emoji:"🌸" },
+  { subject:"She",        verb:"is",  rest:"at the park",       words:["She","is","at","the","park"],           emoji:"🌳" },
+  { subject:"We",         verb:"are", rest:"a great team",      words:["We","are","a","great","team"],          emoji:"🏆" },
+  { subject:"I",          verb:"am",  rest:"from Spain",        words:["I","am","from","Spain"],                emoji:"🌍" },
+].map(q=>({...q,type:'sc'}));
+
+// ══════════════════════════════════════════
+//  CONSTANTS & STATE
+// ══════════════════════════════════════════
+const TOTAL = 20;
+const TEAM_COLORS = [
+  {bg:'#E3F2FD',border:'#42A5F5',shadow:'#1976D2',text:'#1565C0',dot:'#42A5F5'},
+  {bg:'#FCE4EC',border:'#F48FB1',shadow:'#C2185B',text:'#AD1457',dot:'#F48FB1'},
+  {bg:'#E8F5E9',border:'#81C784',shadow:'#388E3C',text:'#2E7D32',dot:'#81C784'},
+  {bg:'#FFF3E0',border:'#FFB74D',shadow:'#E65100',text:'#E65100',dot:'#FFB74D'},
+];
+const PRAISE = ['Great job! 🌟','Correct! 🎉','Amazing! 🚀','Yes! ✅','Awesome! 🏆','Perfect! 🔥','Brilliant! 💫'];
+const BADGE = {
+  drag:{text:'🎯 Drag & Drop', bg:'#E8F5E9', border:'#66BB6A', color:'#2E7D32'},
+  tf:  {text:'✅ True / False',bg:'#E3F2FD', border:'#42A5F5', color:'#1565C0'},
+  mc:  {text:'🔤 Multiple Choice',bg:'#FFF3E0',border:'#FFB74D',color:'#E65100'},
+  sc:  {text:'✍️ Drag & Build',bg:'#FCE4EC',border:'#F48FB1',color:'#AD1457'},
+};
+
+let mode='solo', numTeams=2, teamNames=['Team 1','Team 2'], teamScores=[], currentTeam=0;
+let pool=[], current=0, soloScore=0, answered=false;
+let scPlaced=[], scTileOrder=[];
+
+function shuffle(a){ return a.slice().sort(()=>Math.random()-0.5); }
+
+// ══════════════════════════════════════════
+//  SETUP
+// ══════════════════════════════════════════
+function selectMode(m){
+  mode=m;
+  document.getElementById('btnSolo').classList.toggle('active',m==='solo');
+  document.getElementById('btnTeam').classList.toggle('active',m==='team');
+  document.getElementById('teamNamesSection').style.display=m==='team'?'block':'none';
+  if(m==='team') buildTeamInputs();
+}
+function selectTeamCount(n){
+  numTeams=n;
+  [2,3,4].forEach(i=>document.getElementById('tc'+i).classList.toggle('active',i===n));
+  buildTeamInputs();
+}
+function buildTeamInputs(){
+  const c=document.getElementById('teamNameInputs'); c.innerHTML='';
+  for(let i=0;i<numTeams;i++){
+    const col=TEAM_COLORS[i];
+    const row=document.createElement('div'); row.className='team-name-row';
+    row.innerHTML=`<div class="team-dot" style="background:${col.dot}"></div>
+      <input class="team-name-input" id="tn${i}" placeholder="Team ${i+1}" value="${teamNames[i]||''}" style="border-color:${col.border}" maxlength="20">`;
+    c.appendChild(row);
+  }
+}
+
+function startGame(){
+  if(mode==='team'){
+    teamNames=[];
+    for(let i=0;i<numTeams;i++){
+      const v=(document.getElementById('tn'+i)||{}).value||('Team '+(i+1));
+      teamNames.push(v.trim()||'Team '+(i+1));
+    }
+    teamScores=new Array(numTeams).fill(0); currentTeam=0;
+  }
+  // build balanced pool: 7 drag, 5 tf, 5 mc, 3 sc  (= 20)
+  pool=[
+    ...shuffle(dragQ).slice(0,7),
+    ...shuffle(tfQ).slice(0,5),
+    ...shuffle(mcQ).slice(0,5),
+    ...shuffle(scQ).slice(0,3),
+  ];
+  pool=shuffle(pool);
+  current=0; soloScore=0; answered=false;
+
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('finalScreen').style.display='none';
+  document.getElementById('gameScreen').style.display='block';
+
+  const isTeam=mode==='team';
+  document.querySelectorAll('.team-only').forEach(el=>el.style.display=isTeam?'flex':'none');
+  document.getElementById('turnBanner').style.display=isTeam?'block':'none';
+  document.getElementById('soloScore').style.display=isTeam?'none':'block';
+
+  if(isTeam) buildScoreboards();
+  renderQuestion();
+}
+
+// ══════════════════════════════════════════
+//  SCOREBOARDS
+// ══════════════════════════════════════════
+function buildScoreboards(){
+  const sb=document.getElementById('scoreboards'); sb.innerHTML='';
+  for(let i=0;i<numTeams;i++){
+    const col=TEAM_COLORS[i];
+    const card=document.createElement('div');
+    card.className='scoreboard'+(i===currentTeam?' active-team':'');
+    card.id='sb'+i;
+    card.style.borderColor=col.border; card.style.boxShadow=`0 5px 0 ${col.shadow}`; card.style.color=col.text;
+    card.innerHTML=`<div class="team-name">${teamNames[i]}</div><div class="team-pts" id="pts${i}">0</div><div class="team-pts-label">pts</div>`;
+    sb.appendChild(card);
+  }
+}
+function updateScoreboards(){
+  for(let i=0;i<numTeams;i++){
+    document.getElementById('pts'+i).textContent=teamScores[i];
+    document.getElementById('sb'+i).classList.toggle('active-team',i===currentTeam);
+  }
+  const col=TEAM_COLORS[currentTeam];
+  const banner=document.getElementById('turnBanner');
+  banner.style.background=col.border; banner.style.boxShadow=`0 4px 0 ${col.shadow}`;
+  banner.textContent=`${teamNames[currentTeam]}'s turn! 🎯`;
+}
+
+// ══════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════
+function renderQuestion(){
+  const q=pool[current]; answered=false;
+  document.getElementById('progressLabel').textContent=`${current+1} / ${TOTAL}`;
+  document.getElementById('progressBar').style.width=`${((current+1)/TOTAL)*100}%`;
+  document.getElementById('emojiIcon').textContent=q.emoji;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('wbLabel').style.display='none';
+  document.getElementById('wordBank').style.display='none';
+
+  // type badge
+  const b=BADGE[q.type], badge=document.getElementById('qtypeBadge');
+  badge.textContent=b.text; badge.style.background=b.bg; badge.style.borderColor=b.border; badge.style.color=b.color;
+
+  if(mode==='team') updateScoreboards();
+  else document.getElementById('scoreEl').textContent=soloScore;
+
+  if(q.type==='drag')  renderDrag(q);
+  if(q.type==='tf')    renderTF(q);
+  if(q.type==='mc')    renderMC(q);
+  if(q.type==='sc')    renderSC(q);
+
+  const card=document.getElementById('questionCard');
+  card.style.animation='none'; void card.offsetWidth; card.style.animation='';
+}
+
+// ── DRAG ──
+function renderDrag(q){
+  document.getElementById('qLabel').textContent='Fill in the blank';
+  document.getElementById('wbLabel').style.display='block';
+  document.getElementById('wordBank').style.display='flex';
+  ['am','is','are'].forEach(w=>document.getElementById('tile-'+w).classList.remove('used','dragging'));
+
+  const body=document.getElementById('questionBody');
+  body.innerHTML='';
+  const sentEl=document.createElement('div'); sentEl.className='sentence';
+  const parts=q.sentence.split('___');
+  sentEl.appendChild(document.createTextNode(parts[0]));
+  const dz=document.createElement('span'); dz.className='drop-zone'; dz.id='dropZone';
+  dz.addEventListener('dragover',e=>{e.preventDefault();if(!answered)dz.classList.add('drag-over');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');if(!answered)markAnswer(e.dataTransfer.getData('text/plain')===q.answer,'drag',{word:e.dataTransfer.getData('text/plain'),dz,correct:q.answer});});
+  sentEl.appendChild(dz);
+  sentEl.appendChild(document.createTextNode(parts[1]));
+  body.appendChild(sentEl);
+  const hint=document.createElement('div'); hint.className='hint'; hint.textContent=q.hint;
+  body.appendChild(hint);
+}
+
+// ── TRUE / FALSE ──
+function renderTF(q){
+  document.getElementById('qLabel').textContent='Is this sentence correct?';
+  const body=document.getElementById('questionBody'); body.innerHTML='';
+
+  const sent=document.createElement('div'); sent.className='tf-sentence';
+  // highlight the verb
+  const v=q.correct?q.rightVerb:(q.sentence.match(/\b(am|is|are)\b/i)||[''])[0];
+  sent.innerHTML=q.sentence.replace(new RegExp(`\\b${v}\\b`,'i'),`<span class="tf-verb">${v}</span>`);
+  body.appendChild(sent);
+
+  const hint=document.createElement('div'); hint.className='hint'; hint.style.marginTop='4px'; hint.textContent=q.hint;
+  body.appendChild(hint);
+
+  const btns=document.createElement('div'); btns.className='tf-btns';
+  ['True','False'].forEach(label=>{
+    const btn=document.createElement('button');
+    btn.className='tf-btn '+(label==='True'?'tf-true':'tf-false');
+    btn.textContent=(label==='True'?'✅ ':'❌ ')+label;
+    btn.onclick=()=>{
+      if(answered)return;
+      const chose=(label==='True');
+      markAnswer(chose===q.correct,'tf',{btn,correct:q.correct,allBtns:btns.querySelectorAll('.tf-btn')});
+    };
+    btns.appendChild(btn);
+  });
+  body.appendChild(btns);
+}
+
+// ── MULTIPLE CHOICE ──
+function renderMC(q){
+  document.getElementById('qLabel').textContent='Choose the correct word';
+  const body=document.getElementById('questionBody'); body.innerHTML='';
+
+  const sent=document.createElement('div'); sent.className='sentence';
+  sent.style.marginBottom='4px';
+  sent.innerHTML=q.question.replace('___','<span style="color:#42A5F5;border-bottom:3px dashed #42A5F5;padding:0 8px">___</span>');
+  body.appendChild(sent);
+
+  const hint=document.createElement('div'); hint.className='hint'; hint.textContent=`💡 Subject: ${q.subject}`;
+  body.appendChild(hint);
+
+  const opts=document.createElement('div'); opts.className='mc-options';
+  const letters=['A','B','C','D'];
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement('button'); btn.className='mc-btn';
+    btn.innerHTML=`<span class="mc-letter">${letters[i]}</span>${opt}`;
+    btn.onclick=()=>{
+      if(answered)return;
+      markAnswer(opt===q.answer,'mc',{btn,correct:q.answer,allBtns:opts.querySelectorAll('.mc-btn'),options:q.options});
+    };
+    opts.appendChild(btn);
+  });
+  body.appendChild(opts);
+}
+
+// ── SENTENCE CREATOR (drag & drop) ──
+// sc drag state
+let scDragSource=null; // {word, idx, fromBank:bool, el}
+const scGhost=document.getElementById('scGhost');
+
+function renderSC(q){
+  document.getElementById('qLabel').textContent='Drag words to build the sentence';
+  const body=document.getElementById('questionBody'); body.innerHTML='';
+  scPlaced=[]; scTileOrder=shuffle(q.words);
+
+  const prompt=document.createElement('div'); prompt.className='sc-prompt';
+  prompt.innerHTML=`Build a sentence using <span class="sc-subject-badge">${q.subject}</span>`;
+  body.appendChild(prompt);
+
+  // ── BUILD AREA (drop zone) ──
+  const buildArea=document.createElement('div'); buildArea.className='sc-build-area'; buildArea.id='scBuildArea';
+  const placeholder=document.createElement('span'); placeholder.className='sc-placeholder'; placeholder.id='scPlaceholder';
+  placeholder.textContent='Drag words here to build your sentence…';
+  buildArea.appendChild(placeholder);
+
+  // desktop drop events on build area
+  buildArea.addEventListener('dragover',e=>{
+    e.preventDefault();
+    if(!answered) buildArea.classList.add('drag-over-zone');
+  });
+  buildArea.addEventListener('dragleave',e=>{
+    if(!buildArea.contains(e.relatedTarget)) buildArea.classList.remove('drag-over-zone');
+  });
+  buildArea.addEventListener('drop',e=>{
+    e.preventDefault(); buildArea.classList.remove('drag-over-zone');
+    if(!answered && scDragSource && scDragSource.fromBank) scDropToBank(scDragSource, false, buildArea, placeholder, q);
+  });
+  body.appendChild(buildArea);
+
+  // ── WORD BANK (source tiles) ──
+  const returnLabel=document.createElement('div'); returnLabel.className='sc-return-label'; returnLabel.textContent='↑ drag back to remove ↑'; returnLabel.id='scReturnLabel';
+  body.appendChild(returnLabel);
+
+  const tileWrap=document.createElement('div'); tileWrap.className='sc-word-tiles'; tileWrap.id='scTileWrap';
+
+  // bank is also a drop zone (to return placed words)
+  tileWrap.addEventListener('dragover',e=>{ e.preventDefault(); });
+  tileWrap.addEventListener('drop',e=>{
+    e.preventDefault();
+    if(!answered && scDragSource && !scDragSource.fromBank) scDropToBank(scDragSource, true, buildArea, placeholder, q);
+  });
+
+  scTileOrder.forEach((word,idx)=>{
+    const t=document.createElement('div'); t.className='sc-tile'; t.textContent=word; t.dataset.idx=idx;
+    t.draggable=true;
+    // desktop
+    t.addEventListener('dragstart',e=>{
+      if(t.classList.contains('placed')){e.preventDefault();return;}
+      scDragSource={word,idx,fromBank:true,el:t};
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>t.classList.add('sc-dragging'),0);
+    });
+    t.addEventListener('dragend',()=>t.classList.remove('sc-dragging'));
+    tileWrap.appendChild(t);
+  });
+  body.appendChild(tileWrap);
+
+  // ── CHECK BUTTON ──
+  const checkBtn=document.createElement('button'); checkBtn.className='sc-check-btn'; checkBtn.id='scCheckBtn';
+  checkBtn.textContent='✔ Check Sentence'; checkBtn.disabled=true;
+  checkBtn.onclick=()=>checkSC(q,body);
+  body.appendChild(checkBtn);
+
+  const res=document.createElement('div'); res.id='scResult'; body.appendChild(res);
+
+  // ── TOUCH DRAG for SC ──
+  setupSCTouch(tileWrap, buildArea, placeholder, q);
+}
+
+function scDropToBank(src, toBank, buildArea, placeholder, q){
+  if(toBank){
+    // returning a placed word back to bank
+    scPlaced=scPlaced.filter(p=>p.idx!==src.idx);
+    const pw=buildArea.querySelector(`[data-sc-placed="${src.idx}"]`);
+    if(pw) pw.remove();
+    const srcTile=document.getElementById('scTileWrap').querySelector(`[data-idx="${src.idx}"]`);
+    if(srcTile) srcTile.classList.remove('placed');
+  } else {
+    // dropping bank word into build area
+    if(src.el.classList.contains('placed')) return;
+    src.el.classList.add('placed');
+    scPlaced.push({word:src.word,idx:src.idx});
+    const pw=document.createElement('div'); pw.className='sc-placed-word';
+    pw.textContent=src.word; pw.dataset.scPlaced=src.idx; pw.draggable=true;
+    // drag placed word back to bank
+    pw.addEventListener('dragstart',e=>{
+      scDragSource={word:src.word,idx:src.idx,fromBank:false,el:pw};
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>pw.classList.add('sc-dragging'),0);
+    });
+    pw.addEventListener('dragend',()=>pw.classList.remove('sc-dragging'));
+    buildArea.appendChild(pw);
+  }
+  const hasWords=scPlaced.length>0;
+  placeholder.style.display=hasWords?'none':'';
+  buildArea.classList.toggle('has-words',hasWords);
+  document.getElementById('scCheckBtn').disabled=scPlaced.length<2;
+}
+
+function checkSC(q,body){
+  if(answered)return;
+  const built=scPlaced.map(p=>p.word).join(' ');
+  const expected=q.words.join(' ');
+  const isCorrect=built.trim()===expected.trim();
+  answered=true;
+
+  const res=document.getElementById('scResult');
+  if(isCorrect){
+    res.className='sc-result correct-res'; res.textContent='✅ Perfect sentence! Well done!';
+    document.getElementById('feedback').textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+    awardPoint();
+  } else {
+    res.className='sc-result wrong-res';
+    res.innerHTML=`❌ Not quite! The correct order is:<br><strong>${expected}</strong>`;
+    document.getElementById('feedback').textContent='Keep practising! 💪';
+    document.getElementById('feedback').className='feedback wrong-text';
+  }
+  document.getElementById('scCheckBtn').disabled=true;
+  // disable all dragging
+  document.querySelectorAll('.sc-tile,.sc-placed-word').forEach(el=>{el.draggable=false;el.style.cursor='default';});
+  showNext();
+}
+
+// ── SC TOUCH DRAG ──
+function setupSCTouch(tileWrap, buildArea, placeholder, q){
+  let scTouchSrc=null; // {word,idx,fromBank,el}
+
+  function scTouchStart(el, word, idx, fromBank){
+    return function(e){
+      if(answered) return;
+      if(fromBank && el.classList.contains('placed')) return;
+      scTouchSrc={word,idx,fromBank,el};
+      scGhost.textContent=word; scGhost.style.display='block';
+      const t=e.touches[0];
+      scGhost.style.left=(t.clientX-40)+'px'; scGhost.style.top=(t.clientY-24)+'px';
+      el.classList.add('sc-dragging');
+    };
+  }
+
+  function bindTile(el, word, idx, fromBank){
+    el.addEventListener('touchstart', scTouchStart(el,word,idx,fromBank), {passive:true});
+  }
+
+  // bind to existing source tiles
+  tileWrap.querySelectorAll('.sc-tile').forEach(t=>{
+    bindTile(t, t.textContent, parseInt(t.dataset.idx), true);
+  });
+
+  // store binder for placed words
+  window._scBindPlaced=(pw,word,idx)=>bindTile(pw,word,idx,false);
+
+  document.addEventListener('touchmove', function scMove(e){
+    if(!scTouchSrc) return;
+    const t=e.touches[0];
+    scGhost.style.left=(t.clientX-40)+'px'; scGhost.style.top=(t.clientY-24)+'px';
+    scGhost.style.display='none';
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+    scGhost.style.display='block';
+    buildArea.classList.toggle('drag-over-zone', buildArea.contains(el)||el===buildArea);
+  },{passive:true});
+
+  document.addEventListener('touchend', function scEnd(e){
+    if(!scTouchSrc) return;
+    scGhost.style.display='none';
+    scTouchSrc.el.classList.remove('sc-dragging');
+    buildArea.classList.remove('drag-over-zone');
+
+    const t=e.changedTouches[0];
+    scGhost.style.display='none';
+    const el=document.elementFromPoint(t.clientX,t.clientY);
+
+    const overBuild=buildArea.contains(el)||el===buildArea;
+    const overBank=tileWrap.contains(el)||el===tileWrap;
+
+    if(scTouchSrc.fromBank && overBuild){
+      // add to sentence
+      const src=scTouchSrc;
+      if(!src.el.classList.contains('placed')){
+        src.el.classList.add('placed');
+        scPlaced.push({word:src.word,idx:src.idx});
+        const pw=document.createElement('div'); pw.className='sc-placed-word';
+        pw.textContent=src.word; pw.dataset.scPlaced=src.idx; pw.draggable=true;
+        pw.addEventListener('dragstart',ev=>{
+          scDragSource={word:src.word,idx:src.idx,fromBank:false,el:pw};
+          ev.dataTransfer.effectAllowed='move';
+          setTimeout(()=>pw.classList.add('sc-dragging'),0);
+        });
+        pw.addEventListener('dragend',()=>pw.classList.remove('sc-dragging'));
+        if(window._scBindPlaced) window._scBindPlaced(pw,src.word,src.idx);
+        buildArea.appendChild(pw);
+        placeholder.style.display='none';
+        buildArea.classList.add('has-words');
+        document.getElementById('scCheckBtn').disabled=scPlaced.length<2;
+      }
+    } else if(!scTouchSrc.fromBank && overBank){
+      // return to bank
+      const src=scTouchSrc;
+      scPlaced=scPlaced.filter(p=>p.idx!==src.idx);
+      const pw=buildArea.querySelector(`[data-sc-placed="${src.idx}"]`);
+      if(pw) pw.remove();
+      const srcTile=tileWrap.querySelector(`[data-idx="${src.idx}"]`);
+      if(srcTile) srcTile.classList.remove('placed');
+      if(scPlaced.length===0){ placeholder.style.display=''; buildArea.classList.remove('has-words'); }
+      document.getElementById('scCheckBtn').disabled=scPlaced.length<2;
+    }
+
+    scTouchSrc=null;
+  },{passive:true});
+}
+
+// ══════════════════════════════════════════
+//  ANSWER HANDLING
+// ══════════════════════════════════════════
+function markAnswer(isCorrect,type,ctx){
+  if(answered)return; answered=true;
+
+  if(type==='drag'){
+    const {word,dz,correct}=ctx;
+    dz.textContent=word; dz.classList.add('filled');
+    document.getElementById('tile-'+word).classList.add('used');
+    if(isCorrect){ dz.classList.add('correct-zone'); }
+    else{
+      dz.classList.add('wrong-zone');
+      setTimeout(()=>{dz.textContent=correct;dz.classList.remove('wrong-zone');dz.classList.add('correct-zone');},700);
+    }
+  }
+  if(type==='tf'){
+    const {btn,correct,allBtns}=ctx;
+    if(isCorrect){ btn.classList.add('correct'); }
+    else{
+      btn.classList.add('wrong');
+      allBtns.forEach(b=>{ if((b.textContent.includes('True')&&correct)||(b.textContent.includes('False')&&!correct)) b.classList.add('correct'); });
+      const explain=pool[current];
+      document.getElementById('feedback').textContent=`The correct verb is "${explain.rightVerb}". 💪`;
+      document.getElementById('feedback').className='feedback wrong-text';
+    }
+    allBtns.forEach(b=>b.onclick=null);
+  }
+  if(type==='mc'){
+    const {btn,correct,allBtns,options}=ctx;
+    if(isCorrect){ btn.classList.add('correct'); }
+    else{
+      btn.classList.add('wrong');
+      allBtns.forEach(b=>{ if(b.textContent.includes(correct)) b.classList.add('reveal'); });
+    }
+    allBtns.forEach(b=>b.onclick=null);
+  }
+
+  if(isCorrect){
+    awardPoint();
+    document.getElementById('feedback').textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  } else if(type!=='tf'){
+    document.getElementById('feedback').className='feedback wrong-text';
+    const corr=pool[current].answer||pool[current].rightVerb||pool[current].answer;
+    document.getElementById('feedback').textContent=`Keep going! 💪`;
+  }
+
+  showNext();
+}
+
+function awardPoint(){
+  if(mode==='solo'){
+    soloScore++;
+    document.getElementById('scoreEl').textContent=soloScore;
+  } else {
+    teamScores[currentTeam]++;
+    if(document.getElementById('pts'+currentTeam))
+      document.getElementById('pts'+currentTeam).textContent=teamScores[currentTeam];
+    showPointPopup('+1 ⭐');
+  }
+}
+
+function showNext(){
+  if(current<TOTAL-1){
+    document.getElementById('nextBtn').style.display='block';
+  } else {
+    setTimeout(showFinal,1100);
+  }
+}
+
+function showPointPopup(text){
+  const pp=document.getElementById('pointPopup');
+  const sb=document.getElementById('sb'+currentTeam);
+  if(!sb)return;
+  const r=sb.getBoundingClientRect();
+  pp.textContent=text; pp.style.left=(r.left+r.width/2-30)+'px'; pp.style.top=(r.top-10)+'px';
+  pp.style.display='block'; pp.style.animation='none'; void pp.offsetWidth;
+  pp.style.animation='floatUp 1s ease-out forwards';
+  setTimeout(()=>pp.style.display='none',1000);
+}
+
+function nextQuestion(){
+  if(mode==='team') currentTeam=(currentTeam+1)%numTeams;
+  current++; renderQuestion();
+}
+
+// ══════════════════════════════════════════
+//  FINAL
+// ══════════════════════════════════════════
+function showFinal(){
+  document.getElementById('gameScreen').style.display='none';
+  const fs=document.getElementById('finalScreen'); fs.style.display='block';
+  if(mode==='solo'){
+    const pct=soloScore/TOTAL;
+    let msg="Perfect score! You're a superstar! 🏆";
+    if(pct<1)   msg='Really good work! Keep practising! 💪';
+    if(pct<0.7) msg='Good effort! Practice makes perfect!';
+    if(pct<0.5) msg='Keep going! You can do it! 🌈';
+    document.getElementById('finalEmoji').textContent='🎉';
+    document.getElementById('finalTitle').textContent='You finished!';
+    document.getElementById('finalPodium').innerHTML=`
+      <div class="podium-card" style="border-color:#FFD54F;background:#FFFDE7;color:#F57F17">
+        <div class="place">⭐</div><div class="p-name">Your Score</div>
+        <div class="p-pts">${soloScore} / ${TOTAL}</div>
+      </div>`;
+    document.getElementById('finalMsg').textContent=msg;
+  } else {
+    const ranked=teamNames.map((n,i)=>({name:n,score:teamScores[i],i})).sort((a,b)=>b.score-a.score);
+    const places=['🥇','🥈','🥉','4️⃣'];
+    const tied=ranked[0].score===ranked[1]?.score;
+    document.getElementById('finalEmoji').textContent=tied?'🤝':'🏆';
+    document.getElementById('finalTitle').textContent=tied?'🎊 It\'s a tie!':'🏆 '+ranked[0].name+' wins!';
+    document.getElementById('finalPodium').innerHTML=ranked.map((t,ri)=>{
+      const col=TEAM_COLORS[t.i];
+      return `<div class="podium-card" style="border-color:${col.border};background:${col.bg};color:${col.text}">
+        <div class="place">${places[ri]}</div><div class="p-name">${t.name}</div>
+        <div class="p-pts">${t.score} pts</div></div>`;
+    }).join('');
+    document.getElementById('finalMsg').textContent='Great game everyone! 🎉';
+  }
+}
+
+function restartSame(){
+  document.getElementById('finalScreen').style.display='none';
+  teamScores=new Array(numTeams).fill(0); currentTeam=0;
+  pool=shuffle([...shuffle(dragQ).slice(0,7),...shuffle(tfQ).slice(0,5),...shuffle(mcQ).slice(0,5),...shuffle(scQ).slice(0,3)]);
+  current=0; soloScore=0; answered=false;
+  document.getElementById('gameScreen').style.display='block';
+  if(mode==='team') buildScoreboards();
+  renderQuestion();
+}
+function goSetup(){
+  document.getElementById('finalScreen').style.display='none';
+  document.getElementById('setupScreen').style.display='block';
+}
+
+// ══════════════════════════════════════════
+//  DESKTOP DRAG
+// ══════════════════════════════════════════
+document.querySelectorAll('.tile').forEach(tile=>{
+  tile.addEventListener('dragstart',e=>{
+    if(tile.classList.contains('used')){e.preventDefault();return;}
+    e.dataTransfer.setData('text/plain',tile.dataset.word);
+    setTimeout(()=>tile.classList.add('dragging'),0);
+  });
+  tile.addEventListener('dragend',()=>tile.classList.remove('dragging'));
+});
+
+// ══════════════════════════════════════════
+//  TOUCH DRAG
+// ══════════════════════════════════════════
+const ghost=document.getElementById('ghostTile');
+let touchTile=null,touchWord=null;
+const tileColors={am:{color:'#2E7D32',border:'#66BB6A'},is:{color:'#1565C0',border:'#42A5F5'},are:{color:'#7B1FA2',border:'#CE93D8'}};
+
+document.querySelectorAll('.tile').forEach(tile=>{
+  tile.addEventListener('touchstart',e=>{
+    if(tile.classList.contains('used'))return;
+    touchTile=tile; touchWord=tile.dataset.word;
+    const c=tileColors[touchWord];
+    ghost.textContent=touchWord; ghost.style.color=c.color; ghost.style.borderColor=c.border;
+    const t=e.touches[0];
+    ghost.style.left=(t.clientX-55)+'px'; ghost.style.top=(t.clientY-28)+'px'; ghost.style.display='block';
+    tile.classList.add('dragging');
+  },{passive:true});
+});
+document.addEventListener('touchmove',e=>{
+  if(!touchTile)return;
+  const t=e.touches[0];
+  ghost.style.left=(t.clientX-55)+'px'; ghost.style.top=(t.clientY-28)+'px';
+  ghost.style.display='none';
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  ghost.style.display='block';
+  const dz=document.getElementById('dropZone');
+  if(dz) dz.classList.toggle('drag-over',el===dz||dz.contains(el));
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!touchTile)return;
+  ghost.style.display='none'; touchTile.classList.remove('dragging');
+  const t=e.changedTouches[0];
+  ghost.style.display='none';
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  const dz=document.getElementById('dropZone');
+  if(dz){
+    dz.classList.remove('drag-over');
+    if(el===dz||dz.contains(el)){
+      const q=pool[current];
+      markAnswer(touchWord===q.answer,'drag',{word:touchWord,dz,correct:q.answer});
+    }
+  }
+  touchTile=null; touchWord=null;
+},{passive:true});
+
+// Init
+selectMode('solo');
+</script>
+</body>
+</html>
