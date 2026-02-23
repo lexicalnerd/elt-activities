@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Communicate! — B1 Warm-Up Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #12003e;
+    --card: #1e0a52;
+    --yellow: #FFD94A;
+    --pink: #FF4D8D;
+    --teal: #00E5C4;
+    --orange: #FF7849;
+    --blue: #4DA8FF;
+    --correct: #00E5A0;
+    --wrong: #FF4D4D;
+    --text: #ffffff;
+    --muted: rgba(255,255,255,0.55);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-x: hidden;
+    position: relative;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(77,168,255,0.12) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255,77,141,0.12) 0%, transparent 50%),
+      radial-gradient(circle at 60% 10%, rgba(0,229,196,0.08) 0%, transparent 40%);
+    pointer-events: none;
+  }
+  .screen { display: none; width: 100%; max-width: 720px; }
+  .screen.active { display: flex; flex-direction: column; align-items: center; }
+
+  /* INTRO */
+  #intro { text-align: center; gap: 1.2rem; animation: popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .logo-badge {
+    background: var(--yellow); color: var(--bg);
+    font-family: 'Syne', sans-serif; font-size: 0.7rem; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 0.35rem 1rem; border-radius: 99px; display: inline-block;
+  }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.8rem, 8vw, 5rem); font-weight: 800; color: var(--text); line-height: 1.05; }
+  h1 em { color: var(--yellow); font-style: normal; display: block; }
+  .intro-sub { color: var(--muted); font-size: 1rem; font-weight: 700; max-width: 420px; }
+  .intro-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+  .pill {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    color: var(--text); font-size: 0.78rem; font-weight: 700;
+    padding: 0.35rem 0.85rem; border-radius: 99px; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .btn-start {
+    background: var(--yellow); color: var(--bg);
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem;
+    border: none; border-radius: 16px; padding: 1rem 3rem; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 32px rgba(255,217,74,0.4);
+    letter-spacing: 0.03em; margin-top: 0.5rem;
+  }
+  .btn-start:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 40px rgba(255,217,74,0.55); }
+  .btn-start:active { transform: scale(0.97); }
+
+  /* QUIZ */
+  #quiz { gap: 1rem; animation: slideUp 0.4s ease both; }
+  .topbar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .q-counter { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; color: var(--yellow); }
+  .score-pill {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 99px; padding: 0.3rem 1rem; font-weight: 800; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .score-pill .star { color: var(--yellow); }
+  .streak-pill {
+    background: rgba(255,120,73,0.15); border: 1px solid rgba(255,120,73,0.3);
+    border-radius: 99px; padding: 0.3rem 0.85rem; font-weight: 800; font-size: 0.85rem;
+    color: var(--orange); display: flex; align-items: center; gap: 0.3rem;
+    transition: all 0.3s; min-width: 60px; justify-content: center;
+  }
+  .streak-pill.hot { animation: pulse 0.5s ease; }
+  .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 99px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--teal), var(--blue));
+    border-radius: 99px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 12px rgba(0,229,196,0.5);
+  }
+
+  /* Card */
+  .q-card {
+    width: 100%; background: var(--card); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px; padding: 2rem; position: relative; overflow: hidden;
+  }
+  .q-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .q-card.mcq::before  { background: linear-gradient(90deg, var(--blue), var(--teal)); }
+  .q-card.tf::before   { background: linear-gradient(90deg, var(--pink), var(--orange)); }
+  .q-card.poll::before { background: linear-gradient(90deg, var(--yellow), var(--orange)); }
+  .q-type-label {
+    font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em;
+    margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .q-type-label.mcq  { color: var(--blue); }
+  .q-type-label.tf   { color: var(--pink); }
+  .q-type-label.poll { color: var(--yellow); }
+  .q-text { font-family: 'Syne', sans-serif; font-size: clamp(1.05rem, 3vw, 1.45rem); font-weight: 700; color: var(--text); line-height: 1.35; margin-bottom: 0.4rem; }
+  .q-text .kw { color: var(--yellow); background: rgba(255,217,74,0.12); border-radius: 6px; padding: 0 0.3rem; }
+  .q-hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; font-style: italic; }
+
+  /* MCQ */
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  @media (max-width: 500px) { .options-grid { grid-template-columns: 1fr; } }
+  .opt-btn {
+    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px; color: var(--text); font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem; font-weight: 700; padding: 0.9rem 1rem; cursor: pointer;
+    text-align: left; transition: all 0.18s ease; display: flex; align-items: center; gap: 0.7rem;
+  }
+  .opt-btn .opt-letter {
+    width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 900; flex-shrink: 0; transition: all 0.2s;
+  }
+  .opt-btn:nth-child(1) .opt-letter { background: rgba(77,168,255,0.25);  color: var(--blue); }
+  .opt-btn:nth-child(2) .opt-letter { background: rgba(255,77,141,0.25);  color: var(--pink); }
+  .opt-btn:nth-child(3) .opt-letter { background: rgba(0,229,196,0.25);   color: var(--teal); }
+  .opt-btn:nth-child(4) .opt-letter { background: rgba(255,120,73,0.25);  color: var(--orange); }
+  .opt-btn:hover:not(:disabled) { border-color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+  .opt-btn.correct { border-color: var(--correct) !important; background: rgba(0,229,160,0.18) !important; transform: scale(1.02); }
+  .opt-btn.wrong   { border-color: var(--wrong) !important;   background: rgba(255,77,77,0.15) !important; }
+  .opt-btn:disabled { cursor: default; transform: none !important; }
+
+  /* T/F */
+  .tf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  .tf-btn {
+    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 16px; color: var(--text); font-family: 'Syne', sans-serif;
+    font-size: 1.4rem; font-weight: 800; padding: 1.4rem 1rem; cursor: pointer;
+    text-align: center; transition: all 0.18s ease;
+  }
+  .tf-btn small { display: block; font-family: 'Nunito', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 0.3rem; }
+  .tf-btn.true-btn:hover:not(:disabled)  { border-color: var(--correct); background: rgba(0,229,160,0.1); }
+  .tf-btn.false-btn:hover:not(:disabled) { border-color: var(--wrong);   background: rgba(255,77,77,0.1); }
+  .tf-btn.correct { border-color: var(--correct) !important; background: rgba(0,229,160,0.2) !important; }
+  .tf-btn.wrong   { border-color: var(--wrong) !important;   background: rgba(255,77,77,0.15) !important; }
+  .tf-btn:disabled { cursor: default; }
+
+  /* Poll */
+  .poll-options { display: flex; flex-direction: column; gap: 0.65rem; }
+  .poll-btn {
+    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 14px; color: var(--text); font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem; font-weight: 700; padding: 0.85rem 1.1rem; cursor: pointer;
+    text-align: left; transition: all 0.18s ease; display: flex; align-items: center; gap: 0.75rem;
+    position: relative; overflow: hidden;
+  }
+  .poll-btn:hover:not(:disabled) { border-color: var(--yellow); background: rgba(255,217,74,0.08); transform: translateX(4px); }
+  .poll-btn .poll-icon { font-size: 1.2rem; flex-shrink: 0; position: relative; z-index: 1; }
+  .poll-bar {
+    position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255,217,74,0.15);
+    border-radius: 12px; width: 0%; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); pointer-events: none;
+  }
+  .poll-btn.voted     { border-color: var(--yellow); }
+  .poll-btn.voted-top { border-color: var(--yellow); background: rgba(255,217,74,0.12); }
+  .poll-pct { margin-left: auto; font-weight: 900; color: var(--yellow); font-size: 0.9rem; opacity: 0; transition: opacity 0.4s 0.5s; flex-shrink: 0; position: relative; z-index: 1; }
+  .poll-label { position: relative; z-index: 1; }
+
+  /* Feedback */
+  .feedback-banner {
+    width: 100%; border-radius: 14px; padding: 1rem 1.25rem; font-weight: 800; font-size: 0.95rem;
+    display: none; align-items: center; gap: 0.75rem; animation: slideUp 0.3s ease both;
+  }
+  .feedback-banner.correct-fb { background: rgba(0,229,160,0.18); border: 1.5px solid var(--correct); color: var(--correct); }
+  .feedback-banner.wrong-fb   { background: rgba(255,77,77,0.15);  border: 1.5px solid var(--wrong);   color: #ff9090; }
+  .feedback-banner.poll-fb    { background: rgba(255,217,74,0.12); border: 1.5px solid var(--yellow);  color: var(--yellow); }
+  .feedback-icon { font-size: 1.4rem; flex-shrink: 0; }
+  .fb-text { flex: 1; }
+  .fb-explain { font-weight: 400; font-size: 0.82rem; margin-top: 0.2rem; opacity: 0.85; }
+
+  /* Timer */
+  .timer-wrap { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
+  .timer-svg { transform: rotate(-90deg); }
+  .timer-track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 4; }
+  .timer-progress { fill: none; stroke: var(--teal); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 113; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+  .timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--text); }
+
+  .btn-next {
+    background: var(--yellow); color: var(--bg); font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 0.95rem; border: none; border-radius: 12px; padding: 0.85rem 2.5rem; cursor: pointer;
+    display: none; transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 6px 24px rgba(255,217,74,0.35); align-self: flex-end;
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .btn-next:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 10px 32px rgba(255,217,74,0.5); }
+  .btn-next.show { display: block; }
+
+  /* Results */
+  #results { text-align: center; gap: 1.2rem; animation: popIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .trophy { font-size: 4.5rem; animation: bounce 1s ease infinite alternate; display: block; }
+  .results-title { font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 5vw, 2.8rem); font-weight: 800; color: var(--text); }
+  .results-score { font-family: 'Syne', sans-serif; font-size: clamp(3rem, 10vw, 5rem); font-weight: 800; color: var(--yellow); line-height: 1; }
+  .results-score span { font-size: 40%; color: var(--muted); }
+  .results-sub { color: var(--muted); font-weight: 700; font-size: 0.9rem; }
+  .stats-row { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .stat-box { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 1rem 1.5rem; min-width: 110px; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800; }
+  .stat-num.g { color: var(--correct); }
+  .stat-num.b { color: var(--wrong); }
+  .stat-num.s { color: var(--orange); }
+  .stat-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-top: 0.2rem; }
+  .grade-badge { display: inline-block; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; padding: 0.5rem 1.5rem; border-radius: 99px; letter-spacing: 0.05em; }
+  .btn-retry {
+    background: transparent; color: var(--yellow); border: 2px solid var(--yellow);
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.9rem;
+    border-radius: 12px; padding: 0.75rem 2rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-retry:hover { background: var(--yellow); color: var(--bg); }
+
+  .confetti-piece { position: fixed; width: 10px; height: 10px; top: -20px; border-radius: 2px; animation: confettiFall linear forwards; pointer-events: none; z-index: 999; }
+
+  @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  @keyframes confettiFall { to { top: 110vh; transform: rotate(720deg) translateX(80px); opacity: 0; } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-8px); } 40%,80% { transform: translateX(8px); } }
+  .shake { animation: shake 0.4s ease; }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<section class="screen active" id="intro">
+  <div class="logo-badge">B1 English · Communication</div>
+  <h1>Let's <em>Communicate!</em></h1>
+  <p class="intro-sub">A 10-question warm-up quiz. Answer fast, build a streak, and top the score!</p>
+  <div class="intro-pills">
+    <div class="pill"><span class="dot" style="background:#4DA8FF"></span> 5 × Multiple Choice</div>
+    <div class="pill"><span class="dot" style="background:#FF4D8D"></span> 3 × True / False</div>
+    <div class="pill"><span class="dot" style="background:#FFD94A"></span> 2 × Class Poll</div>
+  </div>
+  <button class="btn-start" id="btnStart">▶ &nbsp;Start Quiz</button>
+</section>
+
+<!-- QUIZ -->
+<section class="screen" id="quiz">
+  <div class="topbar">
+    <div class="q-counter" id="qCounter">Q 1 / 10</div>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <div class="streak-pill" id="streakPill">🔥 0</div>
+      <div class="score-pill"><span class="star">⭐</span> <span id="scoreDisplay">0</span></div>
+    </div>
+    <div class="timer-wrap" id="timerWrap">
+      <svg class="timer-svg" width="48" height="48" viewBox="0 0 40 40">
+        <circle class="timer-track" cx="20" cy="20" r="18"/>
+        <circle class="timer-progress" id="timerCircle" cx="20" cy="20" r="18"/>
+      </svg>
+      <div class="timer-text" id="timerText">20</div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="q-card" id="qCard">
+    <div class="q-type-label" id="qTypeLabel"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="q-hint" id="qHint"></div>
+    <div id="answersArea"></div>
+  </div>
+  <div class="feedback-banner" id="feedbackBanner">
+    <div class="feedback-icon" id="fbIcon"></div>
+    <div class="fb-text"><div id="fbMsg"></div><div class="fb-explain" id="fbExplain"></div></div>
+  </div>
+  <button class="btn-next" id="btnNext">Next →</button>
+</section>
+
+<!-- RESULTS -->
+<section class="screen" id="results">
+  <span class="trophy" id="trophyEmoji">🏆</span>
+  <div class="results-title" id="resultsTitle">Amazing work!</div>
+  <div class="results-score" id="resultsScore">0<span>/ 100 pts</span></div>
+  <div class="results-sub" id="resultsSub"></div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num g" id="statCorrect">0</div><div class="stat-label">Correct</div></div>
+    <div class="stat-box"><div class="stat-num b" id="statWrong">0</div><div class="stat-label">Wrong</div></div>
+    <div class="stat-box"><div class="stat-num s" id="statStreak">0</div><div class="stat-label">Best Streak</div></div>
+  </div>
+  <div class="grade-badge" id="gradeBadge"></div>
+  <button class="btn-retry" id="btnRetry">↺ &nbsp;Try Again</button>
+</section>
+
+<script>
+const questions = [
+  {
+    type: 'mcq',
+    text: 'When you say "<span class="kw">Could I borrow your pen?</span>" you are ___.',
+    hint: 'Think about why someone says this.',
+    options: ['Making a complaint', 'Asking for permission', 'Giving a warning', 'Making an apology'],
+    correct: 1,
+    explain: '"Could" is used to ask for permission politely at B1 level. "May I…?" works too!',
+    points: 10
+  },
+  {
+    type: 'tf',
+    text: 'If a phone line is <span class="kw">engaged</span>, it means nobody is home.',
+    hint: 'Think carefully about this B1 adjective.',
+    correct: false,
+    explain: 'FALSE. "Engaged" means the line is already IN USE — someone else is on the phone. It does NOT mean nobody is home.',
+    points: 8
+  },
+  {
+    type: 'mcq',
+    text: 'Which word means to make someone stop while they are speaking?',
+    hint: 'This is a B1 verb used in conversations.',
+    options: ['Announce', 'Interrupt', 'Persuade', 'Confirm'],
+    correct: 1,
+    explain: '"Interrupt" means to stop someone while they are talking. It can be impolite! The others: announce = tell news; persuade = convince; confirm = make certain.',
+    points: 10
+  },
+  {
+    type: 'poll',
+    text: 'How do you prefer to <span class="kw">communicate</span> with friends?',
+    hint: 'No right or wrong here — vote, then discuss!',
+    options: [
+      { emoji: '💬', label: 'Text message' },
+      { emoji: '📞', label: 'Phone call' },
+      { emoji: '🎥', label: 'Video call' },
+      { emoji: '🤝', label: 'Face-to-face chat' }
+    ],
+    explain: 'Great for discussion: Which is best for important news? For quick questions? Does it depend on who you\'re talking to?'
+  },
+  {
+    type: 'tf',
+    text: 'A <span class="kw">brochure</span> is a type of spoken communication.',
+    hint: 'True or False?',
+    correct: false,
+    explain: 'FALSE. A brochure is a small printed booklet or leaflet — it is written communication, not spoken.',
+    points: 8
+  },
+  {
+    type: 'mcq',
+    text: '"<span class="kw">If I were you</span>, I\'d call the office first." What is the speaker doing?',
+    hint: 'Think about the communication function.',
+    options: ['Making a complaint', 'Telling a joke', 'Giving advice', 'Asking a question'],
+    correct: 2,
+    explain: '"If I were you…" is a classic B1 phrase for giving advice — you say what you would do in someone else\'s situation.',
+    points: 10
+  },
+  {
+    type: 'mcq',
+    text: 'You write <span class="kw">"Yours sincerely,"</span> at the end of a formal letter. This is a ___.',
+    hint: 'Think about the parts of a letter.',
+    options: ['Greeting', 'Sign-off', 'Subject line', 'Heading'],
+    correct: 1,
+    explain: '"Yours sincerely" is a formal sign-off (closing phrase) in a letter. A greeting opens the letter ("Dear Mr Smith…").',
+    points: 10
+  },
+  {
+    type: 'tf',
+    text: 'To <span class="kw">apologise</span> and to <span class="kw">complain</span> mean the same thing.',
+    hint: 'True or False?',
+    correct: false,
+    explain: 'FALSE. "Apologise" = say sorry for something you did wrong. "Complain" = say you are unhappy about something. Opposite functions!',
+    points: 8
+  },
+  {
+    type: 'mcq',
+    text: 'Which phrasal verb means to agree after resisting — to finally give up?',
+    hint: 'It\'s a B1 phrasal verb about changing your mind.',
+    options: ['Hang up', 'Hear from', 'Give in', 'Pass on'],
+    correct: 2,
+    explain: '"Give in" = to stop resisting and agree at last. "Hang up" = end a call; "Hear from" = receive news; "Pass on" = tell someone else.',
+    points: 10
+  },
+  {
+    type: 'poll',
+    text: 'Which skill matters most for good <span class="kw">communication</span>?',
+    hint: 'Vote for your opinion — then compare with classmates!',
+    options: [
+      { emoji: '👂', label: 'Listening carefully' },
+      { emoji: '🗣️', label: 'Speaking clearly' },
+      { emoji: '✍️', label: 'Writing well' },
+      { emoji: '😊', label: 'Body language' }
+    ],
+    explain: 'Research suggests listening is often the most underrated skill. What do your classmates think? Why might they disagree?'
+  }
+];
+
+let currentQ = 0, score = 0, streak = 0, bestStreak = 0, correctCount = 0, wrongCount = 0;
+let timerInterval = null, timeLeft = 20, answered = false;
+let pollVotes = questions.filter(q=>q.type==='poll').map(q=>new Array(q.options.length).fill(0));
+
+function $(id) { return document.getElementById(id); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function startQuiz() {
+  currentQ=0; score=0; streak=0; bestStreak=0; correctCount=0; wrongCount=0;
+  pollVotes = questions.filter(q=>q.type==='poll').map(q=>new Array(q.options.length).fill(0));
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function restartQuiz() { startQuiz(); }
+
+function renderQuestion() {
+  answered = false;
+  const q = questions[currentQ];
+  const card = $('qCard');
+
+  $('qCounter').textContent = `Q ${currentQ+1} / ${questions.length}`;
+  $('scoreDisplay').textContent = score;
+  $('progressFill').style.width = (currentQ / questions.length * 100) + '%';
+  updateStreakPill();
+
+  card.className = 'q-card ' + q.type;
+  const labels = { mcq:'🎯 Multiple Choice', tf:'⚡ True or False', poll:'📊 Class Poll' };
+  const tlEl = $('qTypeLabel');
+  tlEl.className = 'q-type-label ' + q.type;
+  tlEl.textContent = labels[q.type];
+  $('qText').innerHTML = q.text;
+  $('qHint').textContent = q.hint || '';
+
+  $('feedbackBanner').style.display = 'none';
+  $('feedbackBanner').className = 'feedback-banner';
+  $('btnNext').classList.remove('show');
+
+  clearInterval(timerInterval);
+  if (q.type !== 'poll') {
+    timeLeft = 20;
+    $('timerWrap').style.display = 'block';
+    runTimer(q);
+  } else {
+    $('timerWrap').style.display = 'none';
+  }
+
+  const area = $('answersArea');
+  area.innerHTML = '';
+
+  if (q.type === 'mcq') {
+    const grid = document.createElement('div');
+    grid.className = 'options-grid';
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.innerHTML = `<span class="opt-letter">${'ABCD'[i]}</span>${opt}`;
+      btn.onclick = () => answerMCQ(i, q, btn, grid);
+      grid.appendChild(btn);
+    });
+    area.appendChild(grid);
+  } else if (q.type === 'tf') {
+    const grid = document.createElement('div');
+    grid.className = 'tf-grid';
+    const trueBtn = document.createElement('button');
+    trueBtn.className = 'tf-btn true-btn';
+    trueBtn.innerHTML = '✅<small>True</small>';
+    const falseBtn = document.createElement('button');
+    falseBtn.className = 'tf-btn false-btn';
+    falseBtn.innerHTML = '❌<small>False</small>';
+    trueBtn.onclick  = () => answerTF(true,  q, trueBtn, falseBtn);
+    falseBtn.onclick = () => answerTF(false, q, trueBtn, falseBtn);
+    grid.appendChild(trueBtn); grid.appendChild(falseBtn);
+    area.appendChild(grid);
+  } else if (q.type === 'poll') {
+    const pIdx = getPollIndex(currentQ);
+    const pool = document.createElement('div');
+    pool.className = 'poll-options';
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'poll-btn';
+      btn.dataset.idx = i;
+      btn.innerHTML = `
+        <div class="poll-bar" id="pollBar${i}"></div>
+        <span class="poll-icon">${opt.emoji}</span>
+        <span class="poll-label">${opt.label}</span>
+        <span class="poll-pct" id="pollPct${i}">0%</span>`;
+      btn.onclick = () => answerPoll(i, q, pool, pIdx);
+      pool.appendChild(btn);
+    });
+    area.appendChild(pool);
+  }
+
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'slideUp 0.35s ease both';
+}
+
+function runTimer(q) {
+  const circle = $('timerCircle'), text = $('timerText');
+  const circumference = 113;
+  timeLeft = 20; text.textContent = 20;
+  circle.style.strokeDashoffset = 0; circle.style.stroke = 'var(--teal)';
+  timerInterval = setInterval(() => {
+    if (answered) { clearInterval(timerInterval); return; }
+    timeLeft--;
+    text.textContent = timeLeft;
+    circle.style.strokeDashoffset = circumference * (1 - timeLeft/20);
+    if (timeLeft <= 7) circle.style.stroke = 'var(--wrong)';
+    if (timeLeft <= 0) { clearInterval(timerInterval); if (!answered) timeUp(q); }
+  }, 1000);
+}
+
+function timeUp(q) {
+  answered = true; clearInterval(timerInterval);
+  streak = 0; updateStreakPill(); wrongCount++;
+  $('qCard').classList.add('shake');
+  setTimeout(() => $('qCard').classList.remove('shake'), 400);
+  showFeedback('wrong', '⏰ Time\'s up!', q.explain);
+  revealCorrect(q);
+  $('btnNext').classList.add('show');
+}
+
+function answerMCQ(chosen, q, btn, grid) {
+  if (answered) return;
+  answered = true; clearInterval(timerInterval);
+  const isCorrect = chosen === q.correct;
+  grid.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  grid.querySelectorAll('.opt-btn')[q.correct].classList.add('correct');
+  const pts = isCorrect ? Math.max(q.points/2, Math.round(q.points * (timeLeft/20) + q.points*0.4)) : 0;
+  if (isCorrect) {
+    score += pts; streak++; bestStreak = Math.max(bestStreak, streak); correctCount++;
+    $('scoreDisplay').textContent = score; updateStreakPill();
+    showFeedback('correct', `✅ Correct! +${pts} pts`, q.explain);
+  } else {
+    btn.classList.add('wrong'); streak = 0; wrongCount++; updateStreakPill();
+    showFeedback('wrong', '❌ Not quite…', q.explain);
+  }
+  $('btnNext').classList.add('show');
+}
+
+function answerTF(chosen, q, trueBtn, falseBtn) {
+  if (answered) return;
+  answered = true; clearInterval(timerInterval);
+  const isCorrect = chosen === q.correct;
+  trueBtn.disabled = falseBtn.disabled = true;
+  (q.correct ? trueBtn : falseBtn).classList.add('correct');
+  const pts = isCorrect ? Math.max(q.points/2, Math.round(q.points * (timeLeft/20) + q.points*0.4)) : 0;
+  if (isCorrect) {
+    score += pts; streak++; bestStreak = Math.max(bestStreak, streak); correctCount++;
+    $('scoreDisplay').textContent = score; updateStreakPill();
+    showFeedback('correct', `✅ That's right! +${pts} pts`, q.explain);
+  } else {
+    (chosen ? trueBtn : falseBtn).classList.add('wrong');
+    streak = 0; wrongCount++; updateStreakPill();
+    showFeedback('wrong', '❌ Not quite…', q.explain);
+  }
+  $('btnNext').classList.add('show');
+}
+
+function answerPoll(chosen, q, pool, pIdx) {
+  if (answered) return;
+  answered = true;
+  const simVotes = pollVotes[pIdx];
+  simVotes[chosen] += 1;
+  q.options.forEach((_, i) => {
+    simVotes[i] += i === chosen ? Math.floor(Math.random()*5)+2 : Math.floor(Math.random()*8)+1;
+  });
+  const total = simVotes.reduce((a,b)=>a+b,0);
+  const maxV = Math.max(...simVotes);
+  pool.querySelectorAll('.poll-btn').forEach((btn, i) => {
+    btn.disabled = true;
+    const pct = Math.round(simVotes[i]/total*100);
+    $(`pollBar${i}`).style.width = pct+'%';
+    const pctEl = $(`pollPct${i}`);
+    pctEl.textContent = pct+'%'; pctEl.style.opacity = '1';
+    if (i===chosen) btn.classList.add('voted');
+    if (simVotes[i]===maxV) btn.classList.add('voted-top');
+  });
+  showFeedback('poll', '📊 Class results are in!', q.explain);
+  $('btnNext').classList.add('show');
+}
+
+function getPollIndex(qIdx) {
+  let p = 0;
+  for (let i=0; i<qIdx; i++) if (questions[i].type==='poll') p++;
+  return p;
+}
+
+function revealCorrect(q) {
+  const area = $('answersArea');
+  if (q.type==='mcq') area.querySelectorAll('.opt-btn')[q.correct].classList.add('correct');
+  else if (q.type==='tf') area.querySelectorAll('.tf-btn')[q.correct?0:1].classList.add('correct');
+}
+
+function showFeedback(type, msg, explain) {
+  const fb = $('feedbackBanner');
+  fb.className = 'feedback-banner ' + (type==='correct'?'correct-fb':type==='wrong'?'wrong-fb':'poll-fb');
+  $('fbMsg').textContent = msg;
+  $('fbExplain').textContent = explain || '';
+  fb.style.display = 'flex';
+}
+
+function updateStreakPill() {
+  const pill = $('streakPill');
+  pill.textContent = '🔥 ' + streak;
+  if (streak >= 3) {
+    pill.style.background='rgba(255,120,73,0.3)'; pill.style.borderColor='rgba(255,120,73,0.7)';
+    pill.classList.add('hot'); setTimeout(()=>pill.classList.remove('hot'), 500);
+  } else {
+    pill.style.background='rgba(255,120,73,0.1)'; pill.style.borderColor='rgba(255,120,73,0.25)';
+  }
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < questions.length) renderQuestion();
+  else showResults();
+}
+
+function showResults() {
+  clearInterval(timerInterval);
+  showScreen('results');
+  const maxScore = questions.filter(q=>q.type!=='poll').reduce((a,q)=>a+q.points,0);
+  const pct = score / maxScore;
+  $('resultsScore').innerHTML = score + '<span>/ '+maxScore+' pts</span>';
+  $('progressFill').style.width = '100%';
+  $('statCorrect').textContent = correctCount;
+  $('statWrong').textContent   = wrongCount;
+  $('statStreak').textContent  = bestStreak;
+
+  let emoji, title, sub, grade, gc;
+  if      (pct>=0.9) { emoji='🏆'; title='Outstanding!';      sub='You\'re a communication champion!';             grade='★ S RANK'; gc='var(--yellow)'; }
+  else if (pct>=0.7) { emoji='🥇'; title='Great job!';        sub='Really solid work — well done!';                grade='A RANK';   gc='var(--correct)'; }
+  else if (pct>=0.5) { emoji='🥈'; title='Good effort!';      sub='You\'re getting there — review and try again!'; grade='B RANK';   gc='var(--blue)'; }
+  else               { emoji='💪'; title='Keep practising!';   sub='Every expert was once a beginner. Go again!';   grade='C RANK';   gc='var(--muted)'; }
+
+  $('trophyEmoji').textContent = emoji;
+  $('resultsTitle').textContent = title;
+  $('resultsSub').textContent   = sub;
+  $('gradeBadge').textContent   = grade;
+  $('gradeBadge').style.background = gc+'22';
+  $('gradeBadge').style.border = '2px solid '+gc;
+  $('gradeBadge').style.color  = gc;
+
+  if (pct >= 0.7) launchConfetti();
+}
+
+// ============================================================
+//  BIND BUTTONS (avoids inline onclick scope issues)
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('btnStart').addEventListener('click', startQuiz);
+  document.getElementById('btnNext').addEventListener('click', nextQuestion);
+  document.getElementById('btnRetry').addEventListener('click', restartQuiz);
+});
+
+function launchConfetti() {
+  const colors = ['#FFD94A','#FF4D8D','#00E5C4','#4DA8FF','#FF7849','#ffffff'];
+  for (let i=0; i<90; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random()*100+'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.width  = (Math.random()*10+6)+'px';
+      el.style.height = (Math.random()*10+6)+'px';
+      el.style.borderRadius = Math.random()>0.5?'50%':'2px';
+      el.style.animationDuration = (Math.random()*2+2)+'s';
+      el.style.animationDelay   = Math.random()*0.5+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 4000);
+    }, i*25);
+  }
+}
+</script>
+</body>
+</html>
