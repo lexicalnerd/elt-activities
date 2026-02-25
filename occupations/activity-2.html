@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Occupations Wheel</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1b1f3b;
+    --panel: #252a4a;
+    --border: #363d6a;
+    --text: #f0f2ff;
+    --muted: #8b93c9;
+    --gold: #fbbf24;
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { width: 100%; height: 100%; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, #4f46e520 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 20%, #7c3aed18 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 8px 12px 4px;
+  }
+
+  header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    color: var(--gold);
+    letter-spacing: 1px;
+  }
+
+  header p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  /* ---- MAIN LAYOUT ---- */
+  .main {
+    position: relative; z-index: 1;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    padding: 0 8px 8px;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* ---- SENTENCE PANELS ---- */
+  .sentence-panel {
+    background: var(--panel);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .panel-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .structure-box {
+    background: #ffffff09;
+    border-radius: 12px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+  }
+
+  .structure-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  .structure-line {
+    font-size: clamp(0.85rem, 1.3vw, 1rem);
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .structure-line .blank {
+    display: inline-block;
+    border-bottom: 2.5px solid var(--gold);
+    min-width: 90px;
+    color: var(--gold);
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  .example-line {
+    font-size: clamp(0.78rem, 1.1vw, 0.9rem);
+    color: var(--muted);
+    font-weight: 700;
+    line-height: 1.5;
+    font-style: italic;
+    margin-top: 3px;
+    padding-top: 3px;
+    border-top: 1px solid var(--border);
+  }
+
+  .example-line strong { color: #a5b4fc; font-style: normal; }
+
+  /* ---- WHEEL AREA ---- */
+  .wheel-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wheel-wrapper {
+    position: relative;
+    width: min(38vw, 400px);
+    height: min(38vw, 400px);
+  }
+
+  /* pointer */
+  .pointer {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 28px solid var(--gold);
+    z-index: 10;
+    filter: drop-shadow(0 2px 6px #fbbf2488);
+  }
+
+  canvas#wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    box-shadow:
+      0 0 0 6px var(--panel),
+      0 0 0 9px var(--border),
+      0 8px 40px #00000066;
+  }
+
+  /* center hub */
+  .hub {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 4px solid var(--border);
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+  }
+
+  /* spin button */
+  .spin-btn {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    padding: 10px 44px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 24px #f59e0b55;
+    transition: all .2s;
+    letter-spacing: 1px;
+  }
+
+  .spin-btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.03); box-shadow: 0 10px 30px #f59e0b66; }
+  .spin-btn:disabled { opacity: .6; cursor: default; transform: none; }
+
+  /* ---- RESULT PANEL ---- */
+  .result-panel {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 20px;
+    text-align: center;
+    min-width: min(38vw, 400px);
+    min-height: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all .3s;
+  }
+
+  .result-panel.lit {
+    border-color: var(--gold);
+    background: #fbbf2410;
+    box-shadow: 0 0 30px #fbbf2422;
+  }
+
+  .result-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .result-job {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    color: var(--gold);
+    line-height: 1.1;
+    transition: all .3s;
+  }
+
+  .result-prompt {
+    font-size: clamp(0.72rem, 1vw, 0.85rem);
+    color: var(--muted);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .word-chip {
+    background: #ffffff12;
+    border: 1.5px solid var(--border);
+    color: var(--gold);
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 800;
+  }
+
+  /* confetti burst */
+  .burst {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+  }
+
+  @keyframes fall {
+    0%   { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Occupations Wheel</h1>
+  <p>Spin the wheel — then make your sentences!</p>
+</header>
+
+<div class="main">
+
+  <!-- LEFT PANEL: He/She structures -->
+  <div class="sentence-panel">
+    <div class="panel-label">Structure 1 — Describing</div>
+
+    <div class="structure-box">
+      <div class="structure-title">Where they work</div>
+      <div class="structure-line">
+        He / She works in a <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>.
+      </div>
+      <div class="example-line">
+        <strong>She</strong> works in a <strong>hospital</strong>.
+      </div>
+      <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px;">
+        <span class="word-chip">hospital</span>
+        <span class="word-chip">school</span>
+        <span class="word-chip">restaurant</span>
+        <span class="word-chip">kitchen</span>
+        <span class="word-chip">shop</span>
+        <span class="word-chip">garage</span>
+        <span class="word-chip">bakery</span>
+        <span class="word-chip">farm</span>
+        <span class="word-chip">clinic</span>
+        <span class="word-chip">plane</span>
+        <span class="word-chip">police station</span>
+        <span class="word-chip">office</span>
+      </div>
+    </div>
+
+    <div class="structure-box">
+      <div class="structure-title">What they do</div>
+      <div class="structure-line">
+        He / She <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> every day.
+      </div>
+      <div class="example-line">
+        <strong>He</strong> helps sick people <strong>every day</strong>.
+      </div>
+      <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px;">
+        <span class="word-chip">helps patients</span>
+        <span class="word-chip">teaches students</span>
+        <span class="word-chip">cooks meals</span>
+        <span class="word-chip">fixes cars</span>
+        <span class="word-chip">flies a plane</span>
+        <span class="word-chip">grows food</span>
+        <span class="word-chip">makes bread</span>
+        <span class="word-chip">serves food</span>
+        <span class="word-chip">keeps people safe</span>
+        <span class="word-chip">looks after animals</span>
+        <span class="word-chip">checks teeth</span>
+        <span class="word-chip">looks after sick people</span>
+      </div>
+    </div>
+
+    <div class="structure-box">
+      <div class="structure-title">Opinion</div>
+      <div class="structure-line">
+        I think this job is <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>.
+      </div>
+      <div class="example-line">
+        I think this job is <strong>very important</strong>.
+      </div>
+      <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px;">
+        <span class="word-chip">important</span>
+        <span class="word-chip">boring</span>
+        <span class="word-chip">interesting</span>
+        <span class="word-chip">dangerous</span>
+        <span class="word-chip">exciting</span>
+        <span class="word-chip">difficult</span>
+        <span class="word-chip">easy</span>
+        <span class="word-chip">fun</span>
+        <span class="word-chip">tiring</span>
+        <span class="word-chip">creative</span>
+        <span class="word-chip">very busy</span>
+        <span class="word-chip">very useful</span>
+        <span class="word-chip">very important</span>
+        <span class="word-chip">very interesting</span>
+        <span class="word-chip">very boring</span>
+        <span class="word-chip">very difficult</span>
+        <span class="word-chip">very exciting</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTRE: WHEEL -->
+  <div class="wheel-area">
+    <div class="wheel-wrapper">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="500" height="500"></canvas>
+      <div class="hub">&#127744;</div>
+    </div>
+
+    <div class="result-panel" id="result-panel">
+      <div class="result-label">Spin to get a job!</div>
+      <div class="result-job" id="result-job">?</div>
+      <div class="result-prompt" id="result-prompt">Click the button below</div>
+    </div>
+
+    <button class="spin-btn" id="spin-btn" onclick="spinWheel()">SPIN!</button>
+  </div>
+
+  <!-- RIGHT PANEL: Q&A structures -->
+  <div class="sentence-panel">
+    <div class="panel-label">Structure 2 — Question & Answer</div>
+
+    <div class="structure-box">
+      <div class="structure-title">Asking about a job</div>
+      <div class="structure-line">
+        What do you do?
+      </div>
+      <div class="example-line">
+        What do you <strong>do</strong>? / What is your <strong>job</strong>?
+      </div>
+    </div>
+
+    <div class="structure-box">
+      <div class="structure-title">Answering — job</div>
+      <div class="structure-line">
+        I am a <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>.
+      </div>
+      <div class="example-line">
+        I am a <strong>doctor</strong>. / I am a <strong>teacher</strong>.
+      </div>
+      <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px;">
+        <span class="word-chip">doctor</span>
+        <span class="word-chip">teacher</span>
+        <span class="word-chip">nurse</span>
+        <span class="word-chip">chef</span>
+        <span class="word-chip">pilot</span>
+        <span class="word-chip">farmer</span>
+        <span class="word-chip">baker</span>
+        <span class="word-chip">mechanic</span>
+        <span class="word-chip">waiter</span>
+        <span class="word-chip">dentist</span>
+        <span class="word-chip">vet</span>
+        <span class="word-chip">police officer</span>
+      </div>
+    </div>
+
+    <div class="structure-box">
+      <div class="structure-title">Answering — place & task</div>
+      <div class="structure-line">
+        I work in a <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>.<br>
+        I <span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> every day.
+      </div>
+      <div class="example-line">
+        I work in a <strong>school</strong>. I <strong>teach students</strong> every day.
+      </div>
+      <div style="margin-top:5px; display:flex; flex-wrap:wrap; gap:4px;">
+        <span class="word-chip">hospital</span>
+        <span class="word-chip">school</span>
+        <span class="word-chip">restaurant</span>
+        <span class="word-chip">kitchen</span>
+        <span class="word-chip">garage</span>
+        <span class="word-chip">farm</span>
+        <span class="word-chip">bakery</span>
+        <span class="word-chip">help patients</span>
+        <span class="word-chip">teach students</span>
+        <span class="word-chip">cook meals</span>
+        <span class="word-chip">fix cars</span>
+        <span class="word-chip">grow food</span>
+        <span class="word-chip">make bread</span>
+        <span class="word-chip">serve food</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const jobs = [
+  { name: 'Doctor',         color: '#ef4444' },
+  { name: 'Teacher',        color: '#3b82f6' },
+  { name: 'Chef',           color: '#f97316' },
+  { name: 'Nurse',          color: '#ec4899' },
+  { name: 'Pilot',          color: '#6366f1' },
+  { name: 'Farmer',         color: '#84cc16' },
+  { name: 'Baker',          color: '#f59e0b' },
+  { name: 'Mechanic',       color: '#64748b' },
+  { name: 'Waiter',         color: '#14b8a6' },
+  { name: 'Police officer', color: '#0ea5e9' },
+  { name: 'Dentist',        color: '#a855f7' },
+  { name: 'Vet',            color: '#10b981' },
+];
+
+const prompts = [
+  'Now make 2 sentences about this job!',
+  'Ask and answer with your partner!',
+  'Describe this person — where do they work?',
+  'What does this person do every day?',
+  'Would you like this job? Say why!',
+  'Make a question and answer about this job!',
+];
+
+const canvas = document.getElementById('wheel');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const cx = W / 2, cy = H / 2, R = W / 2 - 4;
+const sliceAngle = (2 * Math.PI) / jobs.length;
+
+let currentAngle = 0;
+let spinning = false;
+
+function drawWheel(rotation) {
+  ctx.clearRect(0, 0, W, H);
+
+  jobs.forEach((job, i) => {
+    const start = rotation + i * sliceAngle;
+    const end   = start + sliceAngle;
+
+    // slice
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, start, end);
+    ctx.closePath();
+    ctx.fillStyle = job.color;
+    ctx.fill();
+
+    // lighter inner arc for depth
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R * 0.55, start, end);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.fill();
+
+    // divider line
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(start), cy + R * Math.sin(start));
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // label
+    const mid = start + sliceAngle / 2;
+    const labelR = R * 0.72;
+    const lx = cx + labelR * Math.cos(mid);
+    const ly = cy + labelR * Math.sin(mid);
+
+    ctx.save();
+    ctx.translate(lx, ly);
+    ctx.rotate(mid + Math.PI / 2);
+
+    const words = job.name.split(' ');
+    const fontSize = words.some(w => w.length > 7) ? 15 : 17;
+    ctx.font = `800 ${fontSize}px Nunito, sans-serif`;
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 4;
+
+    if (words.length === 1) {
+      ctx.fillText(words[0], 0, 0);
+    } else {
+      ctx.fillText(words[0], 0, -10);
+      ctx.fillText(words.slice(1).join(' '), 0, 10);
+    }
+    ctx.restore();
+  });
+
+  // outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+}
+
+drawWheel(currentAngle);
+
+function spinWheel() {
+  if (spinning) return;
+  spinning = true;
+
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+
+  const extraSpins = (8 + Math.random() * 8) * 2 * Math.PI;
+  const finalAngle = currentAngle + extraSpins;
+  const duration = 3500 + Math.random() * 1200;
+  const start = performance.now();
+  const startAngle = currentAngle;
+
+  // clear result
+  document.getElementById('result-panel').classList.remove('lit');
+  document.getElementById('result-job').textContent = '...';
+  document.getElementById('result-prompt').textContent = '';
+
+  function easeOut(t) {
+    return 1 - Math.pow(1 - t, 4);
+  }
+
+  function frame(now) {
+    const elapsed = now - start;
+    const t = Math.min(elapsed / duration, 1);
+    currentAngle = startAngle + (finalAngle - startAngle) * easeOut(t);
+    drawWheel(currentAngle);
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      currentAngle = finalAngle % (2 * Math.PI);
+      drawWheel(currentAngle);
+      spinning = false;
+      btn.disabled = false;
+      showResult();
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function showResult() {
+  // pointer is at top = -PI/2
+  // find which slice is under the pointer
+  const pointerAngle = -Math.PI / 2;
+  // normalise
+  let norm = ((pointerAngle - currentAngle) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+  const idx = Math.floor(norm / sliceAngle) % jobs.length;
+  const job = jobs[idx];
+
+  const panel = document.getElementById('result-panel');
+  const jobEl = document.getElementById('result-job');
+  const promptEl = document.getElementById('result-prompt');
+
+  jobEl.textContent = job.name;
+  promptEl.textContent = prompts[Math.floor(Math.random() * prompts.length)];
+  panel.classList.add('lit');
+
+  launchConfetti(job.color);
+}
+
+function launchConfetti(baseColor) {
+  const colors = [baseColor, '#fbbf24', '#ffffff', '#a5f3fc', '#fca5a5'];
+  for (let i = 0; i < 55; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left: ${30 + Math.random() * 40}vw;
+      top: 0;
+      background: ${colors[Math.floor(Math.random() * colors.length)]};
+      width: ${6 + Math.random() * 8}px;
+      height: ${6 + Math.random() * 8}px;
+      border-radius: ${Math.random() > .5 ? '50%' : '2px'};
+      animation-duration: ${1.5 + Math.random() * 2}s;
+      animation-delay: ${Math.random() * .4}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+</script>
+</body>
+</html>
