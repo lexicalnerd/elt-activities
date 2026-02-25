@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Quiz! 🏠</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sky: #E8F4FD;
+  --coral: #FF6B6B;
+  --coral-dark: #E05555;
+  --teal: #2EC4B6;
+  --teal-dark: #22A99A;
+  --yellow: #FFD166;
+  --yellow-dark: #E6B800;
+  --green: #06D6A0;
+  --green-dark: #04B584;
+  --purple: #9B5DE5;
+  --text: #1A1A2E;
+  --muted: #6B7280;
+  --white: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --shadow: 0 8px 24px rgba(0,0,0,0.10);
+  --radius: 20px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--sky);
+  background-image:
+    radial-gradient(circle at 10% 15%, #FFE8E8 0%, transparent 35%),
+    radial-gradient(circle at 90% 80%, #D4F5F0 0%, transparent 35%),
+    radial-gradient(circle at 55% 5%, #FFF8DC 0%, transparent 25%);
+  min-height: 100vh;
+  color: var(--text);
+  overflow-x: hidden;
+}
+.screen { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+.screen.active { display: flex; }
+
+/* START */
+.start-card {
+  background: var(--card-bg);
+  border-radius: 32px;
+  padding: 48px 40px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 3px solid #F0F0F0;
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn {
+  from { opacity:0; transform: scale(0.85) translateY(20px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.start-emoji { font-size: 5rem; display: block; margin-bottom: 12px; animation: wobble 2s ease-in-out infinite; }
+@keyframes wobble {
+  0%,100% { transform: rotate(-3deg); }
+  50%      { transform: rotate(3deg); }
+}
+.start-card h1 { font-family: 'Fredoka One', cursive; font-size: 2.8rem; color: var(--coral); line-height: 1.1; margin-bottom: 8px; }
+.start-card p { font-size: 1.05rem; color: var(--muted); font-weight: 600; margin-bottom: 28px; line-height: 1.6; }
+.tag-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+.tag { background: var(--sky); border-radius: 20px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; color: var(--teal); border: 2px solid #C8EDE9; }
+.btn-start { background: var(--coral); color: white; border: none; border-radius: 16px; padding: 16px 48px; font-family: 'Fredoka One', cursive; font-size: 1.4rem; cursor: pointer; box-shadow: 0 5px 0 var(--coral-dark); transition: all 0.15s; width: 100%; }
+.btn-start:hover { transform: translateY(-3px); box-shadow: 0 8px 0 var(--coral-dark); }
+.btn-start:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--coral-dark); }
+
+/* QUIZ */
+.quiz-header { width: 100%; max-width: 780px; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.progress-wrap { flex: 1; background: white; border-radius: 99px; height: 14px; overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.08); }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--teal), var(--green)); border-radius: 99px; transition: width 0.5s ease; }
+.q-counter { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--muted); white-space: nowrap; }
+.score-pill { background: var(--yellow); border-radius: 99px; padding: 6px 16px; font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #5a4200; box-shadow: 0 3px 0 var(--yellow-dark); white-space: nowrap; }
+
+.quiz-card { background: var(--card-bg); border-radius: var(--radius); padding: 32px 28px; max-width: 780px; width: 100%; box-shadow: var(--shadow); border: 2px solid #F0F0F0; animation: slideIn 0.35s cubic-bezier(0.34,1.2,0.64,1); }
+@keyframes slideIn {
+  from { opacity:0; transform: translateX(40px); }
+  to   { opacity:1; transform: translateX(0); }
+}
+
+.q-type-badge { display: inline-block; border-radius: 8px; padding: 4px 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+.badge-identify { background: #FFF3E0; color: #E65100; }
+.badge-describe { background: #E8F5E9; color: #2E7D32; }
+.badge-whois    { background: #F3E5F5; color: #6A1B9A; }
+
+.q-text { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 24px; line-height: 1.5; }
+
+.char-stage { display: flex; justify-content: center; align-items: flex-end; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+.char-figure { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.char-figure.clickable { cursor: pointer; }
+.char-figure svg { border-radius: 16px; transition: transform 0.2s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.10)); }
+.char-figure.clickable:hover svg { transform: translateY(-5px) scale(1.06); }
+.char-figure.selected svg { outline: 4px solid var(--teal); border-radius: 16px; }
+.char-figure.correct svg  { outline: 4px solid var(--green); border-radius: 16px; }
+.char-figure.wrong svg    { outline: 4px solid var(--coral); border-radius: 16px; }
+.char-name { font-size: 0.82rem; font-weight: 700; color: var(--muted); text-align: center; min-height: 1.2em; }
+.char-figure.correct .char-name { color: var(--green-dark); }
+.char-figure.wrong .char-name   { color: var(--coral-dark); }
+
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.opt { background: #F8F9FA; border: 2.5px solid #E5E7EB; border-radius: 14px; padding: 14px 18px; font-family: 'Quicksand', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; text-align: left; transition: all 0.15s; display: flex; align-items: center; gap: 10px; }
+.opt:hover:not(:disabled) { border-color: var(--teal); background: #F0FEFA; transform: translateY(-2px); }
+.opt.correct  { border-color: var(--green); background: #E8FFF5; color: #047857; }
+.opt.wrong    { border-color: var(--coral); background: #FFF0F0; color: var(--coral-dark); }
+.opt:disabled { cursor: default; }
+.opt-letter { width: 28px; height: 28px; border-radius: 8px; background: var(--teal); color: white; font-family: 'Fredoka One', cursive; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.opt.correct .opt-letter { background: var(--green); }
+.opt.wrong .opt-letter   { background: var(--coral); }
+
+.feedback-bar { margin-top: 20px; border-radius: 14px; padding: 14px 20px; font-weight: 700; font-size: 1rem; display: none; align-items: center; gap: 10px; }
+.feedback-bar.show { display: flex; animation: popIn 0.3s ease; }
+.feedback-bar.correct-bar { background: #D1FAE5; color: #065F46; }
+.feedback-bar.wrong-bar   { background: #FEE2E2; color: #991B1B; }
+
+.btn-next { background: var(--teal); color: white; border: none; border-radius: 14px; padding: 14px 32px; font-family: 'Fredoka One', cursive; font-size: 1.15rem; cursor: pointer; box-shadow: 0 4px 0 var(--teal-dark); transition: all 0.15s; margin-top: 20px; width: 100%; display: none; }
+.btn-next.show { display: block; animation: popIn 0.3s ease; }
+.btn-next:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--teal-dark); }
+.btn-next:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--teal-dark); }
+
+/* RESULTS */
+.results-card { background: white; border-radius: 32px; padding: 48px 36px; max-width: 540px; width: 100%; text-align: center; box-shadow: var(--shadow); border: 3px solid #F0F0F0; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+.trophy { font-size: 5rem; margin-bottom: 8px; display: block; }
+.results-card h2 { font-family: 'Fredoka One', cursive; font-size: 2.2rem; margin-bottom: 6px; }
+.big-score { font-family: 'Fredoka One', cursive; font-size: 4rem; line-height: 1; margin: 16px 0 4px; }
+.score-label { font-size: 1rem; color: var(--muted); font-weight: 600; margin-bottom: 24px; }
+.grade-bar-wrap { background: #F3F4F6; border-radius: 99px; height: 18px; overflow: hidden; margin-bottom: 28px; }
+.grade-bar { height: 100%; border-radius: 99px; transition: width 1s ease; }
+.review-list { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 8px; }
+.review-item { border-radius: 12px; padding: 10px 14px; font-size: 0.88rem; font-weight: 600; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4; }
+.review-item.r-correct { background: #D1FAE5; color: #065F46; }
+.review-item.r-wrong   { background: #FEE2E2; color: #991B1B; }
+.btn-restart { background: var(--coral); color: white; border: none; border-radius: 16px; padding: 14px 36px; font-family: 'Fredoka One', cursive; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 0 var(--coral-dark); transition: all 0.15s; width: 100%; }
+.btn-restart:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--coral-dark); }
+
+.confetti-wrap { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+.dot { position: absolute; animation: fall linear forwards; }
+@keyframes fall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity:1; }
+  100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div class="screen active" id="screenStart">
+  <div class="start-card">
+    <span class="start-emoji">🏠</span>
+    <h1>Family Quiz!</h1>
+    <p>Can you identify family members and describe their physical features? Let's find out!</p>
+    <div class="tag-row">
+      <span class="tag">👨‍👩‍👧‍👦 Family Members</span>
+      <span class="tag">👁️ Physical Features</span>
+      <span class="tag">🎯 10 Questions</span>
+      <span class="tag">⭐ A1.1 Level</span>
+    </div>
+    <button class="btn-start" onclick="startQuiz()">Let's Play! 🎉</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="screenQuiz">
+  <div class="quiz-header">
+    <div class="q-counter" id="qCounter">1 / 10</div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    <div class="score-pill">⭐ <span id="scoreDisp">0</span></div>
+  </div>
+  <div class="quiz-card" id="quizCard">
+    <div class="q-type-badge" id="qBadge"></div>
+    <div class="q-text" id="qText"></div>
+    <div class="char-stage" id="charStage"></div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback-bar" id="feedbackBar"></div>
+    <button class="btn-next" id="btnNext" onclick="nextQuestion()">Next ➜</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="screen" id="screenResults">
+  <div class="results-card">
+    <span class="trophy" id="trophyEmoji">🏆</span>
+    <h2 id="resultsTitle">Great job!</h2>
+    <div class="big-score" id="bigScore"></div>
+    <div class="score-label" id="scoreLabel"></div>
+    <div class="grade-bar-wrap"><div class="grade-bar" id="gradeBar"></div></div>
+    <div class="review-list" id="reviewList"></div>
+    <button class="btn-restart" onclick="restartQuiz()">Play Again! 🔄</button>
+  </div>
+</div>
+
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<script>
+// ── SVG CHARACTER BUILDER ──────────────────────────────────────────────
+function buildChar(cfg, size) {
+  const {member, hair, hairColor, eyeColor, outfit} = cfg;
+  const isMale  = ['father','grandfather','brother'].includes(member);
+  const isKid   = ['sister','brother'].includes(member);
+  const isElder = ['grandmother','grandfather'].includes(member);
+  const skin = {grandmother:'#F5CBA7',grandfather:'#F0B27A',mother:'#FDEBD0',father:'#FAD7A0',sister:'#FDEBD0',brother:'#FAD7A0'}[member]||'#FDEBD0';
+  const C = {
+    casual: {top:isMale?'#3498DB':'#E91E63', bot:isMale?'#2C3E50':'#9C27B0'},
+    formal: {top:isMale?'#2C3E50':'#F0D9B5', bot:isMale?'#2C3E50':'#F0D9B5'},
+    dress:  {top:'#FF85C2', bot:'#FF85C2'},
+    sport:  {top:'#E74C3C', bot:'#2980B9'},
+    winter: {top:'#8E44AD', bot:'#34495E'},
+    school: {top:'#5DADE2', bot:'#2C3E50'},
+  }[outfit]||{top:'#3498DB',bot:'#2C3E50'};
+  const hw = hairColor||'#3B1F08';
+  const ey = eyeColor||'#3B2A1A';
+
+  // Sister: much bigger head-to-body ratio so she's unmistakably a child
+  const isSister = member === 'sister';
+  const headY = isSister ? 60 : isKid ? 54 : 44;
+  const headR  = isSister ? 31 : isKid ? 24 : 29;
+  const bodyH  = isSister ? 58 : isKid ? 82 : 96;
+  const bodyW  = isSister ? 30 : isKid ? 36 : 46;
+  const legH   = isSister ? 42 : isKid ? 54 : 70;
+  const armH   = isSister ? 34 : isKid ? 44 : 58;
+  const bodyTop= headY + headR * 1.02;
+  const hx=75, hy=headY, hs=hair||'short';
+  const totalH = headY + headR + bodyH + legH + 14;
+
+  let hairBack='', hairFront='';
+  if(hs==='short'){
+    hairBack=`<ellipse cx="${hx}" cy="${hy}" rx="${headR+3}" ry="${headR+3}" fill="${hw}"/>`;
+    // hairFront: cap sits on TOP of head only, side strips go down to ear level only
+    hairFront=`
+      <ellipse cx="${hx}" cy="${hy-headR*0.72}" rx="${headR*0.98}" ry="${headR*0.42}" fill="${hw}"/>
+      <rect x="${hx-headR*0.98}" y="${hy-headR*0.72}" width="${headR*0.28}" height="${headR*0.55}" rx="4" fill="${hw}"/>
+      <rect x="${hx+headR*0.7}" y="${hy-headR*0.72}" width="${headR*0.28}" height="${headR*0.55}" rx="4" fill="${hw}"/>
+    `;
+  } else if(hs==='medium'){
+    hairBack=`<ellipse cx="${hx}" cy="${hy}" rx="${headR+4}" ry="${headR+7}" fill="${hw}"/>
+      <rect x="${hx-headR-3}" y="${hy}" width="11" height="20" rx="6" fill="${hw}"/>
+      <rect x="${hx+headR-8}" y="${hy}" width="11" height="20" rx="6" fill="${hw}"/>`;
+  } else if(hs==='long'){
+    hairBack=`<ellipse cx="${hx}" cy="${hy}" rx="${headR+4}" ry="${headR+5}" fill="${hw}"/>
+      <rect x="${hx-headR-3}" y="${hy}" width="12" height="50" rx="7" fill="${hw}"/>
+      <rect x="${hx+headR-9}" y="${hy}" width="12" height="50" rx="7" fill="${hw}"/>`;
+  } else if(hs==='curly'){
+    [[hx-18,hy-headR],[hx,hy-headR-7],[hx+18,hy-headR],[hx-26,hy-headR+10],[hx+26,hy-headR+10]].forEach(([px,py])=>{hairBack+=`<circle cx="${px}" cy="${py}" r="13" fill="${hw}"/>`;});
+    hairBack+=`<rect x="${hx-headR-4}" y="${hy-4}" width="12" height="24" rx="7" fill="${hw}"/>
+      <rect x="${hx+headR-8}" y="${hy-4}" width="12" height="24" rx="7" fill="${hw}"/>`;
+  } else if(hs==='ponytail'){
+    hairBack=`<ellipse cx="${hx}" cy="${hy}" rx="${headR+3}" ry="${headR+4}" fill="${hw}"/>
+      <circle cx="${hx+headR+8}" cy="${hy+8}" r="9" fill="${hw}"/>
+      <line x1="${hx+headR}" y1="${hy+4}" x2="${hx+headR+3}" y2="${hy+8}" stroke="${hw}" stroke-width="7" stroke-linecap="round"/>`;
+    hairFront=`<rect x="${hx-headR}" y="${hy-headR}" width="${headR*2}" height="${headR*.55}" rx="7" fill="${hw}"/>`;
+  }
+
+  let beard='';
+  if(member==='grandfather'){
+    beard=`<ellipse cx="${hx}" cy="${hy+headR*.95}" rx="13" ry="6" fill="#BDC3C7"/>
+      <ellipse cx="${hx-6}" cy="${hy+headR*.82}" rx="5.5" ry="4.5" fill="#BDC3C7"/>
+      <ellipse cx="${hx+6}" cy="${hy+headR*.82}" rx="5.5" ry="4.5" fill="#BDC3C7"/>`;
+  } else if(member==='father'){
+    beard=`<rect x="${hx-10}" y="${hy+headR*.82}" width="20" height="7" rx="4" fill="${hw}" opacity="0.55"/>`;
+  }
+
+  let wrinkles='';
+  if(isElder) wrinkles=`<line x1="${hx-15}" y1="${hy+7}" x2="${hx-10}" y2="${hy+5}" stroke="#DEB887" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="${hx+10}" y1="${hy+7}" x2="${hx+15}" y2="${hy+5}" stroke="#DEB887" stroke-width="1.4" stroke-linecap="round"/>`;
+
+  // Sister extras: freckles + hair bow
+  let sisterExtras = '';
+  if(isSister){
+    sisterExtras = `
+      <!-- freckles -->
+      <circle cx="${hx-9}" cy="${hy+16}" r="1.8" fill="#E8967A" opacity="0.7"/>
+      <circle cx="${hx-6}" cy="${hy+18}" r="1.5" fill="#E8967A" opacity="0.6"/>
+      <circle cx="${hx+6}" cy="${hy+16}" r="1.8" fill="#E8967A" opacity="0.7"/>
+      <circle cx="${hx+9}" cy="${hy+18}" r="1.5" fill="#E8967A" opacity="0.6"/>
+      <!-- hair bow -->
+      <ellipse cx="${hx+headR-4}" cy="${hy-headR*0.6}" rx="9" ry="6" fill="#FF3399" opacity="0.9" transform="rotate(-20,${hx+headR-4},${hy-headR*0.6})"/>
+      <ellipse cx="${hx+headR+8}" cy="${hy-headR*0.6}" rx="9" ry="6" fill="#FF3399" opacity="0.9" transform="rotate(20,${hx+headR+8},${hy-headR*0.6})"/>
+      <circle cx="${hx+headR+2}" cy="${hy-headR*0.6}" r="4.5" fill="#FF69B4"/>
+    `;
+  }
+
+  let glasses='';
+  if(isElder) glasses=`<circle cx="${hx-12}" cy="${hy+3}" r="8" fill="none" stroke="#95A5A6" stroke-width="1.8"/>
+    <circle cx="${hx+12}" cy="${hy+3}" r="8" fill="none" stroke="#95A5A6" stroke-width="1.8"/>
+    <line x1="${hx-4}" y1="${hy+3}" x2="${hx+4}" y2="${hy+3}" stroke="#95A5A6" stroke-width="1.8"/>
+    <line x1="${hx-20}" y1="${hy+3}" x2="${hx-24}" y2="${hy+1}" stroke="#95A5A6" stroke-width="1.8"/>
+    <line x1="${hx+20}" y1="${hy+3}" x2="${hx+24}" y2="${hy+1}" stroke="#95A5A6" stroke-width="1.8"/>`;
+
+  const ebColor=(hw==='#FFFFFF'||hw==='#BDC3C7')?'#999':hw;
+  const svgH = Math.round(size*(totalH/150));
+  const eyeR = isSister ? 7.5 : 6.5; // bigger rounder eyes for sister
+
+  // Sister dress: a trapezoid skirt shape instead of legs
+  const bodyShape = isSister
+    ? `<rect x="${hx-bodyW/2}" y="${bodyTop}" width="${bodyW}" height="${bodyH*0.45}" rx="8" fill="${C.top}"/>
+       <polygon points="${hx-bodyW/2-10},${bodyTop+bodyH} ${hx-bodyW/2},${bodyTop+bodyH*0.45} ${hx+bodyW/2},${bodyTop+bodyH*0.45} ${hx+bodyW/2+10},${bodyTop+bodyH}" fill="${C.top}"/>
+       <ellipse cx="${hx-bodyW/4-4}" cy="${bodyTop+bodyH+legH}" rx="9" ry="5" fill="#2C3E50"/>
+       <ellipse cx="${hx+bodyW/4+4}" cy="${bodyTop+bodyH+legH}" rx="9" ry="5" fill="#2C3E50"/>
+       <rect x="${hx-bodyW/4-8}" y="${bodyTop+bodyH}" width="10" height="${legH}" rx="5" fill="#2C3E50"/>
+       <rect x="${hx+bodyW/4-2}" y="${bodyTop+bodyH}" width="10" height="${legH}" rx="5" fill="#2C3E50"/>`
+    : `<rect x="${hx-bodyW/2}" y="${bodyTop}" width="${bodyW}" height="${bodyH}" rx="10" fill="${C.top}"/>
+       <rect x="${hx-bodyW/2+2}" y="${bodyTop+bodyH}" width="${bodyW/2-3}" height="${legH}" rx="7" fill="${C.bot}"/>
+       <rect x="${hx+3}" y="${bodyTop+bodyH}" width="${bodyW/2-3}" height="${legH}" rx="7" fill="${C.bot}"/>
+       <ellipse cx="${hx-bodyW/4}" cy="${bodyTop+bodyH+legH}" rx="10" ry="5" fill="#2C3E50"/>
+       <ellipse cx="${hx+bodyW/4}" cy="${bodyTop+bodyH+legH}" rx="10" ry="5" fill="#2C3E50"/>`;
+
+  return `<svg width="${size}" height="${svgH}" viewBox="0 0 150 ${totalH}" xmlns="http://www.w3.org/2000/svg">
+    ${hairBack}
+    ${bodyShape}
+    <rect x="${hx-bodyW/2-11}" y="${bodyTop+7}" width="12" height="${armH}" rx="6" fill="${skin}"/>
+    <rect x="${hx+bodyW/2-1}" y="${bodyTop+7}" width="12" height="${armH}" rx="6" fill="${skin}"/>
+    <circle cx="${hx-bodyW/2-5}" cy="${bodyTop+7+armH}" r="7" fill="${skin}"/>
+    <circle cx="${hx+bodyW/2+5}" cy="${bodyTop+7+armH}" r="7" fill="${skin}"/>
+    <ellipse cx="${hx}" cy="${hy}" rx="${headR}" ry="${headR*1.08}" fill="${skin}"/>
+    <ellipse cx="${hx-headR}" cy="${hy+4}" rx="5.5" ry="7" fill="${skin}"/>
+    <ellipse cx="${hx+headR}" cy="${hy+4}" rx="5.5" ry="7" fill="${skin}"/>
+    <ellipse cx="${hx-12}" cy="${hy+3}" rx="${eyeR}" ry="${eyeR}" fill="white"/>
+    <ellipse cx="${hx+12}" cy="${hy+3}" rx="${eyeR}" ry="${eyeR}" fill="white"/>
+    <circle cx="${hx-12}" cy="${hy+3}" r="${eyeR*0.58}" fill="${ey}"/>
+    <circle cx="${hx+12}" cy="${hy+3}" r="${eyeR*0.58}" fill="${ey}"/>
+    <circle cx="${hx-10}" cy="${hy+1}" r="1.3" fill="white"/>
+    <circle cx="${hx+14}" cy="${hy+1}" r="1.3" fill="white"/>
+    <path d="M${hx-18},${hy-7} Q${hx-12},${hy-12} ${hx-5},${hy-7}" stroke="${ebColor}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M${hx+5},${hy-7} Q${hx+12},${hy-12} ${hx+18},${hy-7}" stroke="${ebColor}" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="${hx}" cy="${hy+11}" rx="3.5" ry="2.8" fill="${skin}" stroke="#E8A87C" stroke-width="1"/>
+    <path d="M${hx-8},${hy+19} Q${hx},${hy+26} ${hx+8},${hy+19}" stroke="#E74C3C" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <ellipse cx="${hx-headR+6}" cy="${hy+13}" rx="7" ry="4.5" fill="#FFB6C1" opacity="0.45"/>
+    <ellipse cx="${hx+headR-6}" cy="${hy+13}" rx="7" ry="4.5" fill="#FFB6C1" opacity="0.45"/>
+    ${wrinkles}${beard}${glasses}
+    ${sisterExtras}
+    ${hairFront}
+  </svg>`;
+}
+
+// ── CHARACTER PROFILES ─────────────────────────────────────────────────
+const CHARS = {
+  grandmother: {member:'grandmother',hair:'medium',  hairColor:'#FFFFFF',eyeColor:'#7F8C8D',outfit:'formal', label:'Grandmother 👵'},
+  grandfather: {member:'grandfather', hair:'bald',   hairColor:'#BDC3C7',eyeColor:'#6B4226',outfit:'formal', label:'Grandfather 👴'},
+  mother:      {member:'mother',      hair:'long',   hairColor:'#8B4513',eyeColor:'#4A90D9',outfit:'casual', label:'Mother 👩'},
+  father:      {member:'father',      hair:'short',  hairColor:'#1A0A00',eyeColor:'#3B2A1A',outfit:'casual', label:'Father 👨'},
+  sister:      {member:'sister',      hair:'ponytail',hairColor:'#D4A44C',eyeColor:'#27AE60',outfit:'dress',  label:'Sister 👧'},
+  brother:     {member:'brother',     hair:'short',  hairColor:'#3B1F08',eyeColor:'#6B4226',outfit:'sport',  label:'Brother 👦'},
+};
+
+// ── QUESTIONS ──────────────────────────────────────────────────────────
+function buildQuestions() {
+  return [
+    {
+      type:'identify', badge:'👤 Who is this?', badgeClass:'badge-identify',
+      text:'Look at the character. Who is this family member?',
+      showChar:'sister',
+      options:['Grandmother 👵','Brother 👦','Sister 👧','Mother 👩'],
+      answer:'Sister 👧',
+      explanation:'This is the Sister! She is young and small, with a ponytail and a pink bow.'
+    },
+    {
+      type:'identify', badge:'👤 Who is this?', badgeClass:'badge-identify',
+      text:'Look at the character. Who is this family member?',
+      showChar:'grandfather',
+      options:['Brother 👦','Grandfather 👴','Father 👨','Uncle 👴'],
+      answer:'Grandfather 👴',
+      explanation:'This is the Grandfather. He is bald and has glasses.'
+    },
+    {
+      type:'describe', badge:'💬 Choose the correct description!', badgeClass:'badge-describe',
+      text:'Look at the Sister. What color are her eyes?',
+      showChar:'sister',
+      options:['She has blue eyes 🔵','She has brown eyes 🟤','She has green eyes 🟢','She has gray eyes ⚪'],
+      answer:'She has green eyes 🟢',
+      explanation:'The Sister has green eyes and a blonde ponytail.'
+    },
+    {
+      type:'identify', badge:'👤 Who is this?', badgeClass:'badge-identify',
+      text:'Look at the character. Who is this family member?',
+      showChar:'mother',
+      options:['Mother 👩','Father 👨','Sister 👧','Grandmother 👵'],
+      answer:'Mother 👩',
+      explanation:'This is the Mother. She is tall and has long brown hair and blue eyes.'
+    },
+    {
+      type:'whois', badge:'🔍 Find the character!', badgeClass:'badge-whois',
+      text:'He has short dark hair and is tall. He has a small beard. Who is he?',
+      showChars:['grandfather','father','brother','grandmother'],
+      answer:'father',
+      explanation:'The Father has short dark hair, a beard, and is tall.'
+    },
+    {
+      type:'describe', badge:'💬 Choose the correct description!', badgeClass:'badge-describe',
+      text:'Look at the Father. Which sentence is correct?',
+      showChar:'father',
+      options:['He has long blonde hair','He has short dark hair','He has curly red hair','He has no hair'],
+      answer:'He has short dark hair',
+      explanation:'The Father has short, dark hair.'
+    },
+    {
+      type:'whois', badge:'🔍 Find the character!', badgeClass:'badge-whois',
+      text:'She has white hair and glasses. She is short and old. Who is she?',
+      showChars:['grandmother','grandfather','father','brother'],
+      answer:'grandmother',
+      explanation:'The Grandmother has white hair, glasses, and is short.'
+    },
+    {
+      type:'describe', badge:'💬 Choose the correct description!', badgeClass:'badge-describe',
+      text:'Look at the Brother. Which sentence describes him BEST?',
+      showChar:'brother',
+      options:['He is tall and has long hair','He is medium height with short hair','He is short with curly hair','He is tall with no hair'],
+      answer:'He is medium height with short hair',
+      explanation:'The Brother is medium height and has short dark hair.'
+    },
+    {
+      type:'whois', badge:'🔍 Find the character!', badgeClass:'badge-whois',
+      text:'She has a ponytail, a pink bow, and green eyes. She is young and small. Who is she?',
+      showChars:['grandmother','mother','sister','brother'],
+      answer:'sister',
+      explanation:'The Sister has a ponytail, a pink bow, green eyes, and is young and small.'
+    },
+    {
+      type:'describe', badge:'💬 Choose the correct description!', badgeClass:'badge-describe',
+      text:'Look at the Grandmother. Which sentence describes her BEST?',
+      showChar:'grandmother',
+      options:['She is tall with long brown hair','She is short with white hair','She is young with curly black hair','She is medium height with no hair'],
+      answer:'She is short with white hair',
+      explanation:'The Grandmother is short and has white hair with glasses.'
+    },
+  ];
+}
+
+// ── STATE ──────────────────────────────────────────────────────────────
+let questions=[], current=0, score=0, results=[];
+
+function startQuiz() {
+  questions=buildQuestions(); current=0; score=0; results=[];
+  show('screenQuiz');
+  renderQuestion();
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderQuestion() {
+  const q=questions[current], total=questions.length;
+  document.getElementById('qCounter').textContent=`${current+1} / ${total}`;
+  document.getElementById('progressBar').style.width=`${(current/total)*100}%`;
+  document.getElementById('scoreDisp').textContent=score;
+
+  const badge=document.getElementById('qBadge');
+  badge.textContent=q.badge; badge.className=`q-type-badge ${q.badgeClass}`;
+  document.getElementById('qText').textContent=q.text;
+
+  const stage=document.getElementById('charStage');
+  stage.innerHTML='';
+
+  if(q.type==='whois'){
+    q.showChars.forEach(key=>{
+      const fig=document.createElement('div');
+      fig.className='char-figure clickable';
+      fig.dataset.key=key;
+      fig.innerHTML=buildChar(CHARS[key],96)+`<div class="char-name">?</div>`;
+      fig.onclick=()=>selectChar(key,fig,q);
+      stage.appendChild(fig);
+    });
+  } else {
+    const fig=document.createElement('div');
+    fig.className='char-figure';
+    fig.innerHTML=buildChar(CHARS[q.showChar], q.type==='identify'?130:120);
+    stage.appendChild(fig);
+  }
+
+  const grid=document.getElementById('optionsGrid');
+  grid.innerHTML='';
+  grid.style.display=q.type==='whois'?'none':'grid';
+
+  if(q.type!=='whois'){
+    ['A','B','C','D'].forEach((letter,i)=>{
+      const btn=document.createElement('button');
+      btn.className='opt';
+      btn.innerHTML=`<span class="opt-letter">${letter}</span>${q.options[i]}`;
+      btn.onclick=()=>selectOption(q.options[i],btn,q);
+      grid.appendChild(btn);
+    });
+  }
+
+  document.getElementById('feedbackBar').className='feedback-bar';
+  document.getElementById('feedbackBar').innerHTML='';
+  document.getElementById('btnNext').className='btn-next';
+}
+
+function selectOption(opt, btn, q) {
+  document.querySelectorAll('.opt').forEach(b=>{b.disabled=true; b.onclick=null;});
+  const correct=opt===q.answer;
+  btn.classList.add(correct?'correct':'wrong');
+  if(!correct) document.querySelectorAll('.opt').forEach(b=>{if(b.textContent.trim().includes(q.answer)) b.classList.add('correct');});
+  recordResult(correct,q);
+  showFeedback(correct,q.explanation);
+}
+
+function selectChar(key,fig,q) {
+  document.querySelectorAll('.char-figure').forEach(f=>{f.onclick=null;});
+  const correct=key===q.answer;
+  fig.classList.add(correct?'correct':'wrong');
+  if(!correct){
+    document.querySelectorAll('.char-figure').forEach(f=>{
+      if(f.dataset.key===q.answer) f.classList.add('correct');
+    });
+  }
+  document.querySelectorAll('.char-figure .char-name').forEach(n=>{
+    n.textContent=CHARS[n.closest('.char-figure').dataset.key].label;
+  });
+  recordResult(correct,q);
+  showFeedback(correct,q.explanation);
+}
+
+function recordResult(correct,q) {
+  if(correct) score++;
+  results.push({correct, text:q.text, answer:q.answer});
+  document.getElementById('scoreDisp').textContent=score;
+}
+
+function showFeedback(correct,explanation) {
+  const fb=document.getElementById('feedbackBar');
+  fb.className=`feedback-bar show ${correct?'correct-bar':'wrong-bar'}`;
+  fb.innerHTML=correct
+    ?`<span>🎉</span><span>Correct! ${explanation}</span>`
+    :`<span>💪</span><span>Not quite! ${explanation}</span>`;
+  document.getElementById('btnNext').className='btn-next show';
+}
+
+function nextQuestion() {
+  current++;
+  if(current>=questions.length){ showResults(); return; }
+  const card=document.getElementById('quizCard');
+  card.style.animation='none'; void card.offsetWidth; card.style.animation='';
+  renderQuestion();
+}
+
+function showResults() {
+  show('screenResults');
+  const total=questions.length, pct=Math.round((score/total)*100);
+  const data=pct===100?['🏆','Perfect Score!']:pct>=80?['🥇','Excellent!']:pct>=60?['🥈','Good Job!']:pct>=40?['🥉','Keep Practicing!']:['📚',"Let's Study More!"];
+  document.getElementById('trophyEmoji').textContent=data[0];
+  document.getElementById('resultsTitle').textContent=data[1];
+  document.getElementById('bigScore').textContent=`${score}/${total}`;
+  document.getElementById('bigScore').style.color=pct>=60?'var(--green)':'var(--coral)';
+  document.getElementById('scoreLabel').textContent=`${pct}% correct`;
+  const bar=document.getElementById('gradeBar');
+  bar.style.width='0%';
+  bar.style.background=pct>=60?'linear-gradient(90deg,var(--teal),var(--green))':'linear-gradient(90deg,var(--coral),var(--yellow))';
+  setTimeout(()=>bar.style.width=pct+'%',100);
+  document.getElementById('reviewList').innerHTML=results.map((r,i)=>`
+    <div class="review-item ${r.correct?'r-correct':'r-wrong'}">
+      <span>${r.correct?'✅':'❌'}</span>
+      <span><strong>Q${i+1}:</strong> ${r.text.length>60?r.text.slice(0,60)+'…':r.text}</span>
+    </div>`).join('');
+  if(pct>=80) launchConfetti();
+}
+
+function restartQuiz() {
+  document.getElementById('confettiWrap').innerHTML='';
+  startQuiz();
+}
+
+function launchConfetti() {
+  const colors=['#FF6B6B','#2EC4B6','#FFD166','#06D6A0','#9B5DE5','#FF9F1C'];
+  const wrap=document.getElementById('confettiWrap');
+  wrap.innerHTML='';
+  for(let i=0;i<70;i++){
+    const d=document.createElement('div');
+    const size=6+Math.random()*8;
+    d.className='dot';
+    d.style.cssText=`left:${Math.random()*100}%;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};width:${size}px;height:${size}px;border-radius:${Math.random()>.5?'50%':'3px'};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.8}s;`;
+    wrap.appendChild(d);
+  }
+  setTimeout(()=>wrap.innerHTML='',4000);
+}
+</script>
+</body>
+</html>

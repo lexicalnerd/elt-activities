@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build My Family! 👨‍👩‍👧‍👦</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF9F0;
+    --card: #FFFFFF;
+    --primary: #FF6B6B;
+    --secondary: #4ECDC4;
+    --accent: #FFE66D;
+    --purple: #A78BFA;
+    --green: #6EE7B7;
+    --text: #2D2D2D;
+    --soft: #F3E8FF;
+    --border: #E5E7EB;
+    --shadow: 0 8px 32px rgba(0,0,0,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 20% 20%, #FFE0E0 0%, transparent 40%),
+                      radial-gradient(circle at 80% 80%, #E0F7F5 0%, transparent 40%),
+                      radial-gradient(circle at 60% 10%, #FFF3CD 0%, transparent 30%);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  header {
+    text-align: center;
+    padding: 28px 20px 12px;
+  }
+
+  header h1 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.8rem;
+    color: var(--primary);
+    text-shadow: 3px 3px 0 #FFD6D6;
+    letter-spacing: -0.5px;
+  }
+
+  header p {
+    font-size: 1.1rem;
+    color: #777;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  .sentence-frames {
+    background: var(--accent);
+    border-radius: 16px;
+    padding: 14px 24px;
+    margin: 0 auto 18px;
+    max-width: 860px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    border: 3px solid #F0C800;
+    box-shadow: 0 4px 0 #F0C800;
+  }
+
+  .frame {
+    background: white;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #5a4a00;
+    border: 2px solid #F0C800;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr 260px;
+    gap: 18px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 18px 40px;
+  }
+
+  .panel {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 18px 14px;
+    box-shadow: var(--shadow);
+    border: 2px solid var(--border);
+  }
+
+  .panel h3 {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed var(--border);
+  }
+
+  /* OPTIONS PANEL */
+  .option-section { margin-bottom: 16px; }
+  .option-section label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+    margin-bottom: 6px;
+  }
+
+  .option-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+
+  .opt-btn {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    padding: 6px 4px;
+    font-size: 1.5rem;
+    text-align: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .opt-btn:hover { transform: scale(1.08); border-color: var(--secondary); }
+  .opt-btn.active {
+    border-color: var(--primary);
+    background: #FFF0F0;
+    box-shadow: 0 0 0 3px rgba(255,107,107,0.2);
+  }
+
+  .opt-btn span {
+    display: block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  /* CHARACTER CANVAS */
+  .canvas-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .character-display {
+    background: linear-gradient(160deg, #f0f9ff 0%, #fef3ff 100%);
+    border-radius: 24px;
+    border: 3px dashed var(--secondary);
+    width: 100%;
+    min-height: 340px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+  }
+
+  .character-wrap {
+    position: relative;
+    width: 160px;
+    height: 260px;
+  }
+
+  /* SVG CHARACTER PARTS */
+  .char-svg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  .family-label {
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.6rem;
+    color: var(--primary);
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  /* DESCRIPTION BOX */
+  .description-box {
+    background: white;
+    border: 3px solid var(--accent);
+    border-radius: 16px;
+    padding: 16px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 0 #F0C800;
+    position: relative;
+  }
+
+  .description-box p {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 2.5em;
+  }
+
+  .description-box p span {
+    color: var(--primary);
+  }
+
+  .sentence-hidden p {
+    filter: blur(7px);
+    user-select: none;
+    pointer-events: none;
+    transition: filter 0.4s;
+  }
+
+  .description-box p {
+    transition: filter 0.4s;
+  }
+
+  .show-sentence-btn {
+    margin-top: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 24px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c0392b;
+    transition: all 0.15s;
+    display: block;
+    width: 100%;
+  }
+
+  .show-sentence-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #c0392b; }
+  .show-sentence-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c0392b; }
+
+  /* GAME PANEL */
+  .mode-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .mode-btn {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mode-btn:hover { border-color: var(--purple); background: var(--soft); }
+  .mode-btn.active { border-color: var(--purple); background: var(--soft); color: #6D28D9; }
+
+  .mode-icon { font-size: 1.3rem; }
+
+  /* SCORE */
+  .score-box {
+    background: linear-gradient(135deg, var(--primary), #FF8E53);
+    border-radius: 14px;
+    padding: 12px;
+    text-align: center;
+    color: white;
+    margin-bottom: 12px;
+  }
+
+  .score-box .score-num {
+    font-family: 'Baloo 2', cursive;
+    font-size: 2.2rem;
+    line-height: 1;
+  }
+
+  .score-box .score-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    opacity: 0.85;
+  }
+
+  /* GUESS GAME */
+  .guess-section { display: none; }
+  .guess-section.active { display: block; }
+
+  .guess-desc {
+    background: var(--soft);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #5B21B6;
+    margin-bottom: 10px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .guess-btn {
+    width: 100%;
+    background: var(--secondary);
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1rem;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+    box-shadow: 0 4px 0 #2bb5ac;
+  }
+
+  .guess-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #2bb5ac; }
+  .guess-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #2bb5ac; }
+  .guess-btn.correct { background: #10B981; box-shadow: 0 4px 0 #059669; }
+  .guess-btn.wrong { background: var(--primary); box-shadow: 0 4px 0 #dc2626; }
+
+  .new-challenge-btn {
+    width: 100%;
+    background: var(--accent);
+    border: 2px solid #F0C800;
+    border-radius: 12px;
+    padding: 10px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 0.95rem;
+    color: #5a4a00;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+    box-shadow: 0 3px 0 #F0C800;
+  }
+
+  .new-challenge-btn:hover { transform: translateY(-1px); }
+
+  /* RESET BTN */
+  .reset-btn {
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    cursor: pointer;
+    width: 100%;
+    color: #999;
+    transition: all 0.15s;
+    margin-top: 6px;
+  }
+  .reset-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* COLOR SWATCHES */
+  .swatch-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .swatch {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.15s;
+  }
+
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.active { border-color: var(--text); transform: scale(1.15); }
+
+  /* FEEDBACK */
+  .feedback {
+    position: fixed;
+    top: 30px; left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: #10B981;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 16px;
+    font-family: 'Baloo 2', cursive;
+    font-size: 1.4rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  .feedback.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    header h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>👨‍👩‍👧‍👦 Build My Family!</h1>
+  <p>A1.1 · Family Members & Physical Appearances</p>
+</header>
+
+<div class="sentence-frames">
+  <div class="frame">🗣️ "This is my ___."</div>
+  <div class="frame">👁️ "He/She has ___ hair."</div>
+  <div class="frame">👀 "He/She has ___ eyes."</div>
+  <div class="frame">📏 "He/She is tall / short."</div>
+  <div class="frame">🧓 "He/She is old / young."</div>
+</div>
+
+<div class="app">
+
+  <!-- LEFT: OPTIONS -->
+  <div class="panel">
+    <h3>🎨 Build Your Character</h3>
+
+    <div class="option-section">
+      <label>👤 Who is it?</label>
+      <div class="option-grid" id="memberGrid"></div>
+    </div>
+
+    <div class="option-section">
+      <label>💇 Hair Style</label>
+      <div class="option-grid" id="hairGrid"></div>
+    </div>
+
+    <div class="option-section">
+      <label>🎨 Hair Color</label>
+      <div class="swatch-grid" id="hairColorGrid"></div>
+    </div>
+
+    <div class="option-section">
+      <label>👀 Eye Color</label>
+      <div class="swatch-grid" id="eyeColorGrid"></div>
+    </div>
+
+    <div class="option-section">
+      <label>📏 Height</label>
+      <div class="option-grid" id="heightGrid"></div>
+    </div>
+
+    <div class="option-section">
+      <label>👕 Outfit</label>
+      <div class="option-grid" id="outfitGrid"></div>
+    </div>
+
+    <button class="reset-btn" onclick="resetCharacter()">🔄 Reset Character</button>
+  </div>
+
+  <!-- CENTER: CHARACTER -->
+  <div class="canvas-area">
+    <div class="character-display">
+      <div class="character-wrap" id="characterWrap">
+        <svg class="char-svg" viewBox="0 0 160 260" id="charSvg" xmlns="http://www.w3.org/2000/svg">
+          <!-- Body -->
+          <g id="bodyGroup"></g>
+          <!-- Hair back -->
+          <g id="hairBackGroup"></g>
+          <!-- Head -->
+          <g id="headGroup"></g>
+          <!-- Face features -->
+          <g id="faceGroup"></g>
+          <!-- Hair front -->
+          <g id="hairFrontGroup"></g>
+          <!-- Accessories -->
+          <g id="accGroup"></g>
+        </svg>
+      </div>
+      <div class="family-label" id="familyLabel">👤 Choose a family member!</div>
+    </div>
+
+    <div class="description-box sentence-hidden" id="descBox">
+      <p id="descText">Build your character, then students describe them! 🌟</p>
+      <button class="show-sentence-btn" id="showSentenceBtn" onclick="toggleSentence()">👁️ Show Sentence</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: GAME -->
+  <div class="panel">
+    <h3>🎮 Class Game</h3>
+
+    <div class="score-box">
+      <div class="score-num" id="scoreNum">0</div>
+      <div class="score-label">⭐ POINTS</div>
+    </div>
+
+    <div class="mode-btns">
+      <button class="mode-btn active" id="btnBuild" onclick="setMode('build')">
+        <span class="mode-icon">🏗️</span> Build Mode<br>
+        <small style="font-weight:600;color:#888">Build & describe together</small>
+      </button>
+      <button class="mode-btn" id="btnGuess" onclick="setMode('guess')">
+        <span class="mode-icon">🔍</span> Guess Who?<br>
+        <small style="font-weight:600;color:#888">Listen & guess!</small>
+      </button>
+      <button class="mode-btn" id="btnTeam" onclick="setMode('team')">
+        <span class="mode-icon">🏆</span> Team Challenge<br>
+        <small style="font-weight:600;color:#888">Race to describe!</small>
+      </button>
+    </div>
+
+    <!-- BUILD MODE -->
+    <div id="buildSection" class="guess-section active">
+      <div class="guess-desc">
+        👩‍🏫 Teacher builds the character on screen.<br><br>
+        Students take turns saying sentences using the frames above!<br><br>
+        ✅ Each correct sentence = <strong>1 point!</strong>
+      </div>
+      <button class="guess-btn" onclick="addPoint()">✅ Correct Sentence! +1</button>
+    </div>
+
+    <!-- GUESS MODE -->
+    <div id="guessSection" class="guess-section">
+      <div class="guess-desc" id="guessClue">Press "New Challenge" to start!</div>
+      <div id="guessOptions"></div>
+      <button class="new-challenge-btn" onclick="newGuessChallenge()">🎲 New Challenge</button>
+    </div>
+
+    <!-- TEAM MODE -->
+    <div id="teamSection" class="guess-section">
+      <div class="guess-desc">
+        🔴 Team A vs 🔵 Team B<br><br>
+        One student from each team comes up. Who describes the character fastest?
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div style="text-align:center">
+          <div style="font-size:0.75rem;font-weight:800;color:#EF4444;margin-bottom:4px">🔴 TEAM A</div>
+          <div class="score-num" id="teamAScore" style="font-family:'Baloo 2',cursive;font-size:2rem;color:#EF4444">0</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:0.75rem;font-weight:800;color:#3B82F6;margin-bottom:4px">🔵 TEAM B</div>
+          <div class="score-num" id="teamBScore" style="font-family:'Baloo 2',cursive;font-size:2rem;color:#3B82F6">0</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <button class="guess-btn" style="background:#EF4444;box-shadow:0 4px 0 #B91C1C" onclick="teamScore('A')">🔴 Team A +1</button>
+        <button class="guess-btn" style="background:#3B82F6;box-shadow:0 4px 0 #1D4ED8" onclick="teamScore('B')">🔵 Team B +1</button>
+      </div>
+      <button class="new-challenge-btn" onclick="randomizeCharacter()">🎲 Random Character!</button>
+    </div>
+
+    <button class="reset-btn" onclick="resetScore()">🔄 Reset Score</button>
+  </div>
+
+</div>
+
+<div class="feedback" id="feedback">🎉 Excellent!</div>
+
+<script>
+const state = {
+  member: 'mother',
+  hair: 'short',
+  hairColor: '#3B1F08',
+  eyeColor: '#5B3C11',
+  height: 'tall',
+  outfit: 'casual',
+  score: 0,
+  teamA: 0,
+  teamB: 0,
+  mode: 'build'
+};
+
+const members = [
+  { id: 'grandmother', emoji: '👵', label: 'Grandma' },
+  { id: 'grandfather', emoji: '👴', label: 'Grandpa' },
+  { id: 'mother', emoji: '👩', label: 'Mother' },
+  { id: 'father', emoji: '👨', label: 'Father' },
+  { id: 'sister', emoji: '👧', label: 'Sister' },
+  { id: 'brother', emoji: '👦', label: 'Brother' },
+];
+
+const hairStyles = [
+  { id: 'short', emoji: '✂️', label: 'Short' },
+  { id: 'medium', emoji: '〰️', label: 'Medium' },
+  { id: 'long', emoji: '🌊', label: 'Long' },
+  { id: 'curly', emoji: '🌀', label: 'Curly' },
+  { id: 'bald', emoji: '🥚', label: 'Bald' },
+  { id: 'ponytail', emoji: '🎀', label: 'Ponytail' },
+];
+
+const hairColors = [
+  { color: '#1A0A00', label: 'Black' },
+  { color: '#3B1F08', label: 'Dark Brown' },
+  { color: '#8B4513', label: 'Brown' },
+  { color: '#D4A44C', label: 'Blonde' },
+  { color: '#C0392B', label: 'Red' },
+  { color: '#BDC3C7', label: 'Gray' },
+  { color: '#FFFFFF', label: 'White' },
+  { color: '#9B59B6', label: 'Purple' },
+];
+
+const eyeColors = [
+  { color: '#3B2A1A', label: 'Dark Brown' },
+  { color: '#6B4226', label: 'Brown' },
+  { color: '#4A90D9', label: 'Blue' },
+  { color: '#27AE60', label: 'Green' },
+  { color: '#7F8C8D', label: 'Gray' },
+  { color: '#E67E22', label: 'Amber' },
+];
+
+const heights = [
+  { id: 'tall', emoji: '🏔️', label: 'Tall' },
+  { id: 'medium', emoji: '〰️', label: 'Medium' },
+  { id: 'short', emoji: '🐾', label: 'Short' },
+];
+
+const outfits = [
+  { id: 'casual', emoji: '👕', label: 'Casual' },
+  { id: 'formal', emoji: '👔', label: 'Formal' },
+  { id: 'dress', emoji: '👗', label: 'Dress' },
+  { id: 'sport', emoji: '🏃', label: 'Sport' },
+  { id: 'winter', emoji: '🧥', label: 'Winter' },
+  { id: 'school', emoji: '🎒', label: 'School' },
+];
+
+// Build option grids
+function buildGrid(containerId, items, key, isColor = false) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  items.forEach(item => {
+    if (isColor) {
+      const btn = document.createElement('div');
+      btn.className = 'swatch' + (state[key] === item.color ? ' active' : '');
+      btn.style.background = item.color;
+      btn.style.border = item.color === '#FFFFFF' ? '3px solid #ddd' : '';
+      btn.title = item.label;
+      btn.onclick = () => { state[key] = item.color; buildGrid(containerId, items, key, true); renderCharacter(); };
+      container.appendChild(btn);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn' + (state[key] === item.id ? ' active' : '');
+      btn.innerHTML = `${item.emoji}<span>${item.label}</span>`;
+      btn.onclick = () => { state[key] = item.id; buildGrid(containerId, items, key); renderCharacter(); };
+      container.appendChild(btn);
+    }
+  });
+}
+
+function initGrids() {
+  buildGrid('memberGrid', members, 'member');
+  buildGrid('hairGrid', hairStyles, 'hair');
+  buildGrid('hairColorGrid', hairColors, 'hairColor', true);
+  buildGrid('eyeColorGrid', eyeColors, 'eyeColor', true);
+  buildGrid('heightGrid', heights, 'height');
+  buildGrid('outfitGrid', outfits, 'outfit');
+}
+
+// SVG Character Rendering
+function renderCharacter() {
+  const svg = document.getElementById('charSvg');
+  const memberInfo = members.find(m => m.id === state.member) || members[0];
+  
+  const isMale = ['father', 'grandfather', 'brother'].includes(state.member);
+  const isKid = ['sister', 'brother'].includes(state.member);
+  const isElder = ['grandmother', 'grandfather'].includes(state.member);
+  
+  // Scale based on height
+  const scales = { tall: 1, medium: 0.88, short: 0.75 };
+  const scale = scales[state.height] || 1;
+  const yOffset = (1 - scale) * 130;
+
+  const skinTones = {
+    grandmother: '#F5CBA7', grandfather: '#F0B27A',
+    mother: '#FDEBD0', father: '#FAD7A0',
+    sister: '#FDEBD0', brother: '#FAD7A0'
+  };
+  const skin = skinTones[state.member] || '#FDEBD0';
+
+  // Body colors by outfit
+  const outfitColors = {
+    casual: { top: isMale ? '#3498DB' : '#E91E63', bottom: isMale ? '#2C3E50' : '#9C27B0' },
+    formal: { top: isMale ? '#2C3E50' : '#E8D5B7', bottom: isMale ? '#2C3E50' : '#E8D5B7' },
+    dress: { top: '#E74C9E', bottom: '#E74C9E' },
+    sport: { top: '#E74C3C', bottom: '#2980B9' },
+    winter: { top: '#8E44AD', bottom: '#34495E' },
+    school: { top: '#FFFFFF', bottom: '#2C3E50' },
+  };
+  const clothes = outfitColors[state.outfit] || outfitColors.casual;
+
+  const hw = state.hairColor;
+
+  // Distinct proportions per role:
+  // kids: big head, short body — clearly child-like
+  // adults: normal proportions
+  // elders: slightly shorter body, same head
+  const headY  = isKid ? 72  : 52;
+  const headR  = isKid ? 30  : 32;
+  const bodyTop = headY + headR * 1.05;
+  const bodyH  = isKid ? 72  : (isElder ? 100 : 110);
+  const bodyW  = isKid ? 38  : 50;
+  const legH   = isKid ? 50  : (isElder ? 72 : 80);
+  const armH   = isKid ? 42  : 62;
+
+  const hs = state.hair;
+  const hx = 80, hy = headY;
+  const brow = `${hw === '#FFFFFF' || hw === '#BDC3C7' ? '#888' : hw}`;
+
+  // ── HAIR: split into BACK layer (drawn before head) and FRONT cap (drawn after head) ──
+  let hairBack = '', hairFront = '';
+
+  if (hs === 'short') {
+    // Back: just a slight bump behind head for sides/back coverage
+    hairBack = `
+      <ellipse cx="${hx}" cy="${hy + 2}" rx="${headR + 3}" ry="${headR + 3}" fill="${hw}"/>
+    `;
+    // Front cap: sits on TOP of the head, does NOT cover the face
+    // The cap covers from the very top down to just above the eyebrow line (hy - headR*0.05)
+    hairFront = `
+      <path d="M${hx - headR - 1},${hy - 4}
+               A${headR + 1},${headR * 1.15} 0 0,1 ${hx + headR + 1},${hy - 4}
+               L${hx + headR - 2},${hy - 10}
+               Q${hx},${hy - headR * 1.6} ${hx - headR + 2},${hy - 10} Z"
+            fill="${hw}"/>
+    `;
+  } else if (hs === 'medium') {
+    hairBack = `
+      <ellipse cx="${hx}" cy="${hy + 2}" rx="${headR + 5}" ry="${headR + 10}" fill="${hw}"/>
+      <rect x="${hx - headR - 5}" y="${hy - 2}" width="13" height="30" rx="7" fill="${hw}"/>
+      <rect x="${hx + headR - 8}" y="${hy - 2}" width="13" height="30" rx="7" fill="${hw}"/>
+    `;
+    hairFront = `
+      <path d="M${hx - headR - 1},${hy - 4}
+               A${headR + 1},${headR * 1.15} 0 0,1 ${hx + headR + 1},${hy - 4}
+               L${hx + headR - 2},${hy - 10}
+               Q${hx},${hy - headR * 1.6} ${hx - headR + 2},${hy - 10} Z"
+            fill="${hw}"/>
+    `;
+  } else if (hs === 'long') {
+    hairBack = `
+      <ellipse cx="${hx}" cy="${hy + 2}" rx="${headR + 5}" ry="${headR + 8}" fill="${hw}"/>
+      <rect x="${hx - headR - 5}" y="${hy - 2}" width="14" height="65" rx="8" fill="${hw}"/>
+      <rect x="${hx + headR - 9}" y="${hy - 2}" width="14" height="65" rx="8" fill="${hw}"/>
+    `;
+    hairFront = `
+      <path d="M${hx - headR - 1},${hy - 4}
+               A${headR + 1},${headR * 1.15} 0 0,1 ${hx + headR + 1},${hy - 4}
+               L${hx + headR - 2},${hy - 10}
+               Q${hx},${hy - headR * 1.6} ${hx - headR + 2},${hy - 10} Z"
+            fill="${hw}"/>
+    `;
+  } else if (hs === 'curly') {
+    const puffs = [
+      [hx - 22, hy - headR + 2, 13], [hx, hy - headR - 6, 14], [hx + 22, hy - headR + 2, 13],
+      [hx - 30, hy - headR + 16, 12], [hx + 30, hy - headR + 16, 12]
+    ];
+    hairBack = puffs.map(([px, py, r]) => `<circle cx="${px}" cy="${py}" r="${r}" fill="${hw}"/>`).join('');
+    hairBack += `
+      <rect x="${hx - headR - 5}" y="${hy - 4}" width="14" height="32" rx="7" fill="${hw}"/>
+      <rect x="${hx + headR - 9}" y="${hy - 4}" width="14" height="32" rx="7" fill="${hw}"/>
+    `;
+    hairFront = `
+      <path d="M${hx - headR - 1},${hy - 4}
+               A${headR + 1},${headR * 1.15} 0 0,1 ${hx + headR + 1},${hy - 4}
+               L${hx + headR - 2},${hy - 10}
+               Q${hx},${hy - headR * 1.55} ${hx - headR + 2},${hy - 10} Z"
+            fill="${hw}"/>
+    `;
+  } else if (hs === 'ponytail') {
+    hairBack = `
+      <ellipse cx="${hx}" cy="${hy + 2}" rx="${headR + 4}" ry="${headR + 6}" fill="${hw}"/>
+      <circle cx="${hx + headR + 12}" cy="${hy + 14}" r="11" fill="${hw}"/>
+      <path d="M${hx + headR},${hy + 6} Q${hx + headR + 8},${hy + 10} ${hx + headR + 7},${hy + 18}" stroke="${hw}" stroke-width="9" fill="none" stroke-linecap="round"/>
+    `;
+    hairFront = `
+      <path d="M${hx - headR - 1},${hy - 4}
+               A${headR + 1},${headR * 1.15} 0 0,1 ${hx + headR + 1},${hy - 4}
+               L${hx + headR - 2},${hy - 10}
+               Q${hx},${hy - headR * 1.6} ${hx - headR + 2},${hy - 10} Z"
+            fill="${hw}"/>
+    `;
+  }
+  // bald: both stay empty
+
+  // ── AGE / ROLE visual markers ──
+  // Kids: rounder face, smaller body (already via isKid dims)
+  // Sister: add small bow/clip detail; Brother: nothing extra
+  // Elders: wrinkles + glasses
+  let ageExtras = '';
+  if (state.member === 'sister') {
+    // Small bow on top right of hair
+    ageExtras += `<path d="M${hx+8},${hy - headR - 4} C${hx+6},${hy - headR - 14} ${hx+20},${hy - headR - 14} ${hx+14},${hy - headR - 4}" fill="#FF6B9D" opacity="0.9"/>
+    <path d="M${hx+14},${hy - headR - 4} C${hx+8},${hy - headR - 14} ${hx+22},${hy - headR - 14} ${hx+20},${hy - headR - 4}" fill="#FF6B9D" opacity="0.9"/>
+    <circle cx="${hx+14}" cy="${hy - headR - 4}" r="3" fill="#FF3D7F"/>`;
+  }
+  if (state.member === 'brother') {
+    // Cap peak / fringe detail — already looks boyish from short defaults
+    ageExtras += '';
+  }
+
+  // Wrinkles for elders
+  let wrinkles = '';
+  if (isElder) {
+    wrinkles = `
+      <path d="M${hx-18},${hy+6} Q${hx-12},${hy+3} ${hx-7},${hy+6}" stroke="#C8A882" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <path d="M${hx+7},${hy+6} Q${hx+12},${hy+3} ${hx+18},${hy+6}" stroke="#C8A882" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+      <path d="M${hx-7},${hy+16} Q${hx},${hy+19} ${hx+7},${hy+16}" stroke="#C8A882" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      <path d="M${hx-14},${hy-8} Q${hx-12},${hy-12} ${hx-8},${hy-9}" stroke="#C8A882" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      <path d="M${hx+8},${hy-9} Q${hx+12},${hy-12} ${hx+14},${hy-8}" stroke="#C8A882" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+    `;
+  }
+
+  // Beard — sits BELOW the mouth. Mouth curve ends at hy+28.
+  let beard = '';
+  if (state.member === 'grandfather') {
+    beard = `
+      <ellipse cx="${hx}" cy="${hy + 30}" rx="11" ry="5" fill="#BDC3C7"/>
+      <ellipse cx="${hx - 7}" cy="${hy + 27}" rx="6" ry="4" fill="#BDC3C7"/>
+      <ellipse cx="${hx + 7}" cy="${hy + 27}" rx="6" ry="4" fill="#BDC3C7"/>
+    `;
+  } else if (state.member === 'father') {
+    beard = `<path d="M${hx-9},${hy+28} Q${hx},${hy+36} ${hx+9},${hy+28}" stroke="${hw}" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.65"/>`;
+  }
+
+  // Glasses for elders
+  let glasses = '';
+  if (isElder) {
+    glasses = `
+      <circle cx="${hx-13}" cy="${hy+3}" r="9" fill="none" stroke="#95A5A6" stroke-width="2"/>
+      <circle cx="${hx+13}" cy="${hy+3}" r="9" fill="none" stroke="#95A5A6" stroke-width="2"/>
+      <line x1="${hx-4}" y1="${hy+3}" x2="${hx+4}" y2="${hy+3}" stroke="#95A5A6" stroke-width="2"/>
+      <line x1="${hx-22}" y1="${hy+3}" x2="${hx-27}" y2="${hy+1}" stroke="#95A5A6" stroke-width="1.5"/>
+      <line x1="${hx+22}" y1="${hy+3}" x2="${hx+27}" y2="${hy+1}" stroke="#95A5A6" stroke-width="1.5"/>
+    `;
+  }
+
+  // Outfit details
+  let outfitDetails = '';
+  if (state.outfit === 'formal' && isMale) {
+    outfitDetails = `
+      <rect x="${hx - 6}" y="${bodyTop + 2}" width="12" height="${bodyH - 4}" fill="#E8D5B7"/>
+      <polygon points="${hx-6},${bodyTop} ${hx},${bodyTop+15} ${hx-14},${bodyTop+8}" fill="#C0392B"/>
+      <polygon points="${hx+6},${bodyTop} ${hx},${bodyTop+15} ${hx+14},${bodyTop+8}" fill="#C0392B"/>
+    `;
+  } else if (state.outfit === 'school') {
+    outfitDetails = `<rect x="${hx-6}" y="${bodyTop+2}" width="12" height="20" fill="#3498DB"/>`;
+  }
+
+  const fullSVG = `
+    <g transform="translate(0, ${yOffset}) scale(1, ${scale}) translate(0, ${-yOffset / scale})">
+
+      <!-- 1. HAIR BACK (behind everything) -->
+      ${hairBack}
+
+      <!-- 2. BODY -->
+      <rect x="${hx - bodyW/2}" y="${bodyTop}" width="${bodyW}" height="${bodyH}" rx="12" fill="${clothes.top}"/>
+      ${outfitDetails}
+
+      <!-- 3. LEGS -->
+      <rect x="${hx - bodyW/2 + 2}" y="${bodyTop + bodyH}" width="${bodyW/2 - 3}" height="${legH}" rx="8" fill="${clothes.bottom}"/>
+      <rect x="${hx + 3}" y="${bodyTop + bodyH}" width="${bodyW/2 - 3}" height="${legH}" rx="8" fill="${clothes.bottom}"/>
+
+      <!-- 4. SHOES -->
+      <ellipse cx="${hx - bodyW/4}" cy="${bodyTop + bodyH + legH}" rx="12" ry="6" fill="#2C3E50"/>
+      <ellipse cx="${hx + bodyW/4}" cy="${bodyTop + bodyH + legH}" rx="12" ry="6" fill="#2C3E50"/>
+
+      <!-- 5. ARMS -->
+      <rect x="${hx - bodyW/2 - 12}" y="${bodyTop + 8}" width="14" height="${armH}" rx="7" fill="${skin}"/>
+      <rect x="${hx + bodyW/2 - 2}" y="${bodyTop + 8}" width="14" height="${armH}" rx="7" fill="${skin}"/>
+      <circle cx="${hx - bodyW/2 - 5}" cy="${bodyTop + 8 + armH}" r="8" fill="${skin}"/>
+      <circle cx="${hx + bodyW/2 + 5}" cy="${bodyTop + 8 + armH}" r="8" fill="${skin}"/>
+
+      <!-- 6. HEAD (drawn after body/arms, before face) -->
+      <ellipse cx="${hx}" cy="${hy}" rx="${headR}" ry="${headR * 1.1}" fill="${skin}"/>
+      <ellipse cx="${hx - headR}" cy="${hy + 4}" rx="6" ry="8" fill="${skin}"/>
+      <ellipse cx="${hx + headR}" cy="${hy + 4}" rx="6" ry="8" fill="${skin}"/>
+
+      <!-- 7. FACE FEATURES -->
+      <!-- Eyes white -->
+      <ellipse cx="${hx - 13}" cy="${hy + 3}" rx="7" ry="7" fill="white"/>
+      <ellipse cx="${hx + 13}" cy="${hy + 3}" rx="7" ry="7" fill="white"/>
+      <!-- Iris -->
+      <circle cx="${hx - 13}" cy="${hy + 3}" r="4" fill="${state.eyeColor}"/>
+      <circle cx="${hx + 13}" cy="${hy + 3}" r="4" fill="${state.eyeColor}"/>
+      <!-- Highlight -->
+      <circle cx="${hx - 11}" cy="${hy + 1}" r="1.5" fill="white"/>
+      <circle cx="${hx + 15}" cy="${hy + 1}" r="1.5" fill="white"/>
+      <!-- Nose -->
+      <ellipse cx="${hx}" cy="${hy + 13}" rx="3.5" ry="2.5" fill="${skin}" stroke="#D4956A" stroke-width="1"/>
+      <!-- Mouth -->
+      <path d="M${hx-9},${hy+21} Q${hx},${hy+29} ${hx+9},${hy+21}" stroke="#D94040" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Cheeks -->
+      <ellipse cx="${hx - headR + 7}" cy="${hy + 15}" rx="8" ry="5" fill="#FFB6C1" opacity="0.45"/>
+      <ellipse cx="${hx + headR - 7}" cy="${hy + 15}" rx="8" ry="5" fill="#FFB6C1" opacity="0.45"/>
+      <!-- Wrinkles (elders) -->
+      ${wrinkles}
+      <!-- Beard (below mouth) -->
+      ${beard}
+      <!-- Glasses (elders) -->
+      ${glasses}
+
+      <!-- 8. HAIR FRONT CAP (on top of head, doesn't cover face) -->
+      ${hairFront}
+      <!-- Eyebrows (drawn after hair front so they show) -->
+      <path d="M${hx-20},${hy-9} Q${hx-13},${hy-15} ${hx-6},${hy-9}" stroke="${brow}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M${hx+6},${hy-9} Q${hx+13},${hy-15} ${hx+20},${hy-9}" stroke="${brow}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+      <!-- 9. AGE EXTRAS (bow for sister, etc.) -->
+      ${ageExtras}
+    </g>
+  `;
+
+  svg.innerHTML = fullSVG;
+
+  // Update label & description
+  document.getElementById('familyLabel').textContent = `${memberInfo.emoji} ${memberInfo.label}`;
+  updateDescription();
+  hideSentence();
+  initGrids();
+}
+
+function updateDescription() {
+  const memberInfo = members.find(m => m.id === state.member) || members[0];
+  const hairInfo = hairStyles.find(h => h.id === state.hair) || hairStyles[0];
+  const hairColorInfo = hairColors.find(c => c.color === state.hairColor) || hairColors[0];
+  const eyeColorInfo = eyeColors.find(c => c.color === state.eyeColor) || eyeColors[0];
+  const heightInfo = heights.find(h => h.id === state.height) || heights[0];
+  const isMale = ['father', 'grandfather', 'brother'].includes(state.member);
+  const pronoun = isMale ? 'He' : 'She';
+
+  const isElder = ['grandmother', 'grandfather'].includes(state.member);
+
+  document.getElementById('descText').innerHTML = 
+    `This is my <span>${memberInfo.label}</span>. 
+     ${pronoun} has <span>${hairInfo.label.toLowerCase()} ${hairColorInfo.label.toLowerCase()} hair</span> 
+     and <span>${eyeColorInfo.label.toLowerCase()} eyes</span>. 
+     ${pronoun} is <span>${heightInfo.label.toLowerCase()}</span>${isElder ? ' and <span>old</span>' : ' and <span>young</span>'}.`;
+}
+
+function toggleSentence() {
+  const box = document.getElementById('descBox');
+  const btn = document.getElementById('showSentenceBtn');
+  const hidden = box.classList.toggle('sentence-hidden');
+  btn.textContent = hidden ? '👁️ Show Sentence' : '🙈 Hide Sentence';
+}
+
+function hideSentence() {
+  const box = document.getElementById('descBox');
+  const btn = document.getElementById('showSentenceBtn');
+  box.classList.add('sentence-hidden');
+  btn.textContent = '👁️ Show Sentence';
+}
+
+// MODES
+function setMode(mode) {
+  state.mode = mode;
+  ['build', 'guess', 'team'].forEach(m => {
+    document.getElementById(`btn${m.charAt(0).toUpperCase()+m.slice(1)}`).classList.toggle('active', m === mode);
+    document.getElementById(`${m}Section`).classList.toggle('active', m === mode);
+  });
+}
+
+// GUESS GAME
+const guessChallenges = [
+  { clue: "She has long brown hair and blue eyes. She is tall. She is young. Who is she?", answer: "mother", options: ["mother", "grandmother", "sister", "father"] },
+  { clue: "He has short gray hair and brown eyes. He is short. He is old. Who is he?", answer: "grandfather", options: ["grandfather", "brother", "father", "mother"] },
+  { clue: "She has curly black hair and green eyes. She is short. She is young. Who is she?", answer: "sister", options: ["sister", "mother", "grandmother", "brother"] },
+  { clue: "He has bald head and dark brown eyes. He is tall. He is young. Who is he?", answer: "father", options: ["father", "grandfather", "brother", "sister"] },
+  { clue: "She has white hair and gray eyes. She is short. She is old. Who is she?", answer: "grandmother", options: ["grandmother", "mother", "sister", "grandfather"] },
+  { clue: "He has medium blonde hair and blue eyes. He is medium height. He is young. Who is he?", answer: "brother", options: ["brother", "father", "grandfather", "sister"] },
+];
+
+let currentChallenge = null;
+
+function newGuessChallenge() {
+  currentChallenge = guessChallenges[Math.floor(Math.random() * guessChallenges.length)];
+  document.getElementById('guessClue').textContent = `🔍 ${currentChallenge.clue}`;
+  
+  const container = document.getElementById('guessOptions');
+  container.innerHTML = '';
+  
+  const shuffled = [...currentChallenge.options].sort(() => Math.random() - 0.5);
+  shuffled.forEach(opt => {
+    const memberInfo = members.find(m => m.id === opt);
+    const btn = document.createElement('button');
+    btn.className = 'guess-btn';
+    btn.textContent = `${memberInfo.emoji} ${memberInfo.label}`;
+    btn.onclick = () => checkGuess(opt, btn);
+    container.appendChild(btn);
+  });
+}
+
+function checkGuess(answer, btn) {
+  if (!currentChallenge) return;
+  const btns = document.querySelectorAll('#guessOptions .guess-btn');
+  btns.forEach(b => b.onclick = null);
+  
+  if (answer === currentChallenge.answer) {
+    btn.classList.add('correct');
+    btn.textContent = '✅ ' + btn.textContent;
+    addPoint();
+    showFeedback('🎉 Correct! Great job!');
+  } else {
+    btn.classList.add('wrong');
+    btn.textContent = '❌ ' + btn.textContent;
+    // Highlight correct
+    btns.forEach(b => {
+      const label = b.textContent.replace('❌ ', '').replace('✅ ', '').trim();
+      const mInfo = members.find(m => m.label === label);
+      if (mInfo && mInfo.id === currentChallenge.answer) b.classList.add('correct');
+    });
+    showFeedback('💪 Try again next time!', false);
+  }
+}
+
+function addPoint() {
+  state.score++;
+  document.getElementById('scoreNum').textContent = state.score;
+  showFeedback('⭐ +1 Point!');
+}
+
+function teamScore(team) {
+  if (team === 'A') { state.teamA++; document.getElementById('teamAScore').textContent = state.teamA; }
+  else { state.teamB++; document.getElementById('teamBScore').textContent = state.teamB; }
+  showFeedback(team === 'A' ? '🔴 Team A scores!' : '🔵 Team B scores!');
+}
+
+function resetScore() {
+  state.score = 0; state.teamA = 0; state.teamB = 0;
+  document.getElementById('scoreNum').textContent = '0';
+  document.getElementById('teamAScore').textContent = '0';
+  document.getElementById('teamBScore').textContent = '0';
+}
+
+function resetCharacter() {
+  state.member = 'mother';
+  state.hair = 'short';
+  state.hairColor = '#3B1F08';
+  state.eyeColor = '#5B3C11';
+  state.height = 'tall';
+  state.outfit = 'casual';
+  renderCharacter();
+}
+
+function randomizeCharacter() {
+  state.member = members[Math.floor(Math.random() * members.length)].id;
+  state.hair = hairStyles[Math.floor(Math.random() * hairStyles.length)].id;
+  state.hairColor = hairColors[Math.floor(Math.random() * hairColors.length)].color;
+  state.eyeColor = eyeColors[Math.floor(Math.random() * eyeColors.length)].color;
+  state.height = heights[Math.floor(Math.random() * heights.length)].id;
+  state.outfit = outfits[Math.floor(Math.random() * outfits.length)].id;
+  renderCharacter();
+  showFeedback('🎲 New random character!');
+}
+
+function showFeedback(msg, positive = true) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.style.background = positive ? '#10B981' : '#EF4444';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// Init
+initGrids();
+renderCharacter();
+</script>
+</body>
+</html>
