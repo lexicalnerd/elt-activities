@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ELT Activities · English Learning Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #fdf6ec;
+      --sand:    #f0e6d2;
+      --ink:     #1a1208;
+      --warm:    #c4622d;
+      --gold:    #e8a627;
+      --green:   #3a7d44;
+      --blue:    #2e5fa3;
+      --rose:    #b84c6e;
+      --purple:  #6b4fa0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── BACKGROUND TEXTURE ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 20%, rgba(232,166,39,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 90% 80%, rgba(196,98,45,.10) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 4rem 2rem 2rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--warm);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .35em 1em;
+      border-radius: 2em;
+      margin-bottom: 1.4rem;
+      opacity: 0;
+      animation: fadeUp .6s .1s forwards;
+    }
+
+    h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2.6rem, 7vw, 5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -.02em;
+      opacity: 0;
+      animation: fadeUp .7s .2s forwards;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--warm);
+    }
+
+    .subtitle {
+      margin-top: 1rem;
+      font-size: 1.05rem;
+      color: #6b5a48;
+      max-width: 44ch;
+      margin-inline: auto;
+      opacity: 0;
+      animation: fadeUp .7s .35s forwards;
+    }
+
+    /* decorative rule */
+    .rule {
+      width: 48px;
+      height: 3px;
+      background: var(--gold);
+      border-radius: 2px;
+      margin: 2rem auto 3.5rem;
+      opacity: 0;
+      animation: fadeUp .6s .45s forwards;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.6rem;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 2rem 6rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: #fff;
+      border: 1.5px solid rgba(26,18,8,.08);
+      border-radius: 18px;
+      padding: 2rem 1.8rem 1.6rem;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: .9rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+      opacity: 0;
+      animation: fadeUp .65s forwards;
+    }
+
+    .card:nth-child(1) { animation-delay: .5s; }
+    .card:nth-child(2) { animation-delay: .62s; }
+    .card:nth-child(3) { animation-delay: .74s; }
+    .card:nth-child(4) { animation-delay: .86s; }
+    .card:nth-child(5) { animation-delay: .98s; }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity .22s;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 16px 40px rgba(26,18,8,.12); }
+    .card:hover::after { opacity: 1; }
+
+    /* colour accents per card */
+    .card[data-color="warm"]   { --accent: var(--warm);   }
+    .card[data-color="green"]  { --accent: var(--green);  }
+    .card[data-color="blue"]   { --accent: var(--blue);   }
+    .card[data-color="rose"]   { --accent: var(--rose);   }
+    .card[data-color="purple"] { --accent: var(--purple); }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--accent) 15%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .card-label {
+      font-size: .68rem;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 1.38rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .card-desc {
+      font-size: .88rem;
+      line-height: 1.55;
+      color: #6b5a48;
+      flex: 1;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-top: .2rem;
+    }
+
+    .tag {
+      font-size: .72rem;
+      background: var(--sand);
+      border-radius: 2em;
+      padding: .2em .75em;
+      color: #7a6a55;
+      font-weight: 400;
+    }
+
+    .card-arrow {
+      position: absolute;
+      top: 1.6rem;
+      right: 1.6rem;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-size: 1rem;
+      transition: background .22s, transform .22s;
+    }
+    .card:hover .card-arrow {
+      background: var(--accent);
+      color: #fff;
+      transform: translate(2px, -2px);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 2rem 1rem 3rem;
+      font-size: .8rem;
+      color: #a8947e;
+    }
+
+    footer a { color: var(--warm); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">🇬🇧 English Language Learning</div>
+    <h1>Learn English<br /><em>through play</em></h1>
+    <p class="subtitle">Interactive grammar and vocabulary activities crafted to make English practice genuinely fun.</p>
+    <div class="rule"></div>
+  </header>
+
+  <main class="grid">
+
+    <!-- Am · Is · Are -->
+    <a href="index.html" class="card" data-color="warm">
+      <div class="card-icon">☀️</div>
+      <div>
+        <div class="card-label">Grammar</div>
+        <div class="card-title">Am · Is · Are</div>
+      </div>
+      <p class="card-desc">Practise the verb <em>to be</em> with drag-and-drop, true/false, multiple-choice, and sentence-building activities.</p>
+      <div class="card-tags">
+        <span class="tag">Beginner</span>
+        <span class="tag">Verb to be</span>
+        <span class="tag">5 modes</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- Occupations -->
+    <a href="occupations/" class="card" data-color="green">
+      <div class="card-icon">👷</div>
+      <div>
+        <div class="card-label">Vocabulary</div>
+        <div class="card-title">Occupations</div>
+      </div>
+      <p class="card-desc">Discover and practise the names of jobs and professions through a variety of interactive vocabulary games.</p>
+      <div class="card-tags">
+        <span class="tag">Beginner–Pre-Int</span>
+        <span class="tag">Jobs</span>
+        <span class="tag">Vocabulary</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <!-- TELT -->
+    <a href="telt/" class="card" data-color="blue">
+      <div class="card-icon">📝</div>
+      <div>
+        <div class="card-label">Mixed Skills</div>
+        <div class="card-title">TELT Activities</div>
+      </div>
+      <p class="card-desc">A growing collection of technology-enhanced language tasks covering reading, writing, listening, and speaking.</p>
+      <div class="card-tags">
+        <span class="tag">Mixed levels</span>
+        <span class="tag">TELT</span>
+        <span class="tag">Four skills</span>
+      </div>
+      <div class="card-arrow">→</div>
+    </a>
+
+  </main>
+
+  <footer>
+    Made with ❤️ using <a href="https://claude.ai" target="_blank" rel="noopener">Claude</a> &amp; friends ·
+    <a href="https://github.com/lexicalnerd/elt-activities" target="_blank" rel="noopener">View on GitHub</a>
+  </footer>
+
+</body>
+</html>
