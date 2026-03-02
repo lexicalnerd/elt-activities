@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Possessive Pronouns Race! 🏆</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --team-a: #FF6B35;
+    --team-b: #4ECDC4;
+    --bg: #FFF8F0;
+    --accent: #FFE66D;
+    --dark: #2D3436;
+    --correct: #00B894;
+    --wrong: #FF7675;
+    --shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Nunito',sans-serif; background:var(--bg); min-height:100vh; overflow-x:hidden; }
+
+  /* INTRO */
+  #intro {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; text-align:center; padding:30px;
+    background:linear-gradient(135deg,#FF6B35 0%,#FFE66D 50%,#4ECDC4 100%);
+  }
+  #intro h1 { font-family:'Fredoka One',cursive; font-size:clamp(2rem,6vw,4rem); color:white; text-shadow:4px 4px 0 rgba(0,0,0,0.2); margin-bottom:10px; }
+  #intro .subtitle { font-size:1.2rem; color:white; margin-bottom:28px; font-weight:700; }
+  .info-box { background:rgba(255,255,255,0.25); border-radius:16px; padding:14px 24px; margin-bottom:24px; color:white; font-size:0.95rem; line-height:1.8; }
+  .team-name-inputs { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-bottom:28px; }
+  .team-input-block { background:white; border-radius:20px; padding:20px 30px; min-width:200px; }
+  .team-input-block label { display:block; font-weight:800; font-size:1.1rem; margin-bottom:10px; }
+  .team-input-block.a label { color:var(--team-a); }
+  .team-input-block.b label { color:var(--team-b); }
+  .team-input-block input { border:3px solid #eee; border-radius:12px; padding:10px 15px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; width:100%; outline:none; transition:border .2s; }
+  .team-input-block.a input:focus { border-color:var(--team-a); }
+  .team-input-block.b input:focus { border-color:var(--team-b); }
+  #startBtn { background:white; color:var(--dark); font-family:'Fredoka One',cursive; font-size:1.5rem; padding:15px 50px; border:none; border-radius:50px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.2); transition:transform .15s; }
+  #startBtn:hover { transform:scale(1.05); }
+
+  /* GAME */
+  #game { display:none; min-height:100vh; flex-direction:column; }
+  .scoreboard { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; gap:10px; background:var(--dark); color:white; }
+  .team-score { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.1); border-radius:50px; padding:8px 18px; }
+  .team-score .name { font-weight:800; font-size:0.9rem; }
+  .team-score .pts { font-family:'Fredoka One',cursive; font-size:1.8rem; }
+  .team-score.a .pts { color:var(--team-a); }
+  .team-score.b .pts { color:var(--team-b); }
+  .q-counter { font-family:'Fredoka One',cursive; font-size:1rem; color:var(--accent); text-align:center; }
+
+  .timer-wrap { position:relative; width:50px; height:50px; }
+  .timer-svg { transform:rotate(-90deg); }
+  .timer-bg { fill:none; stroke:rgba(255,255,255,0.15); stroke-width:4; }
+  .timer-ring { fill:none; stroke:var(--accent); stroke-width:4; stroke-linecap:round; transition:stroke 0.3s; }
+  .timer-text { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Fredoka One',cursive; font-size:1.1rem; color:white; }
+
+  .progress-bar { height:6px; background:#eee; }
+  .progress-fill { height:100%; background:linear-gradient(90deg,var(--team-a),var(--team-b)); transition:width .4s; }
+
+  .question-area { flex:1; display:flex; flex-direction:column; align-items:center; padding:16px; gap:14px; }
+  .q-type-badge { font-family:'Fredoka One',cursive; font-size:0.85rem; letter-spacing:2px; padding:5px 16px; border-radius:50px; text-transform:uppercase; background:var(--accent); color:var(--dark); }
+  .q-type-badge.tf { background:#a29bfe; color:white; }
+  .q-type-badge.dd { background:#fd79a8; color:white; }
+
+  .question-card { background:white; border-radius:24px; padding:22px 30px; box-shadow:var(--shadow); max-width:760px; width:100%; text-align:center; }
+  .question-card .q-text { font-size:clamp(1rem,2.8vw,1.4rem); font-weight:800; color:var(--dark); line-height:1.6; }
+  .blank { display:inline-block; min-width:100px; border-bottom:4px solid var(--accent); }
+
+  .answer-panels { display:flex; gap:14px; width:100%; max-width:920px; justify-content:center; flex-wrap:wrap; }
+  .team-panel { flex:1; min-width:250px; max-width:420px; background:white; border-radius:20px; padding:14px; box-shadow:var(--shadow); border-top:6px solid transparent; transition: all 0.3s; }
+  .team-panel.a { border-top-color:var(--team-a); }
+  .team-panel.b { border-top-color:var(--team-b); }
+  .team-panel .panel-label { font-weight:800; font-size:0.82rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:10px; text-align:center; }
+  .team-panel.a .panel-label { color:var(--team-a); }
+  .team-panel.b .panel-label { color:var(--team-b); }
+  
+  /* State class when a team answers incorrectly */
+  .team-panel.disabled-panel { opacity: 0.5; pointer-events: none; filter: grayscale(0.8); }
+
+  .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .opt-btn { padding:10px 8px; border-radius:12px; border:3px solid #eee; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.9rem; cursor:pointer; transition:all .15s; background:white; color:var(--dark); }
+  .opt-btn:hover:not(.disabled) { border-color:#ccc; transform:translateY(-2px); }
+  .opt-btn.correct { background:var(--correct); border-color:var(--correct); color:white; }
+  .opt-btn.wrong   { background:var(--wrong);   border-color:var(--wrong);   color:white; }
+  .opt-btn.reveal  { background:var(--correct); border-color:var(--correct); color:white; }
+  .opt-btn.disabled { pointer-events:none; opacity:0.55; }
+
+  .tf-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tf-btn { padding:13px 8px; border-radius:12px; border:3px solid #eee; font-family:'Fredoka One',cursive; font-size:1rem; cursor:pointer; transition:all .15s; background:white; }
+  .tf-btn.true-btn { color:var(--correct); }
+  .tf-btn.false-btn { color:var(--wrong); }
+  .tf-btn:hover:not(.disabled) { transform:translateY(-2px); border-color:#ccc; }
+  .tf-btn.correct { background:var(--correct); border-color:var(--correct); color:white; }
+  .tf-btn.wrong   { background:var(--wrong);   border-color:var(--wrong);   color:white; }
+  .tf-btn.reveal  { background:var(--correct); border-color:var(--correct); color:white; }
+  .tf-btn.disabled { pointer-events:none; opacity:0.55; }
+
+  .dd-area { display:flex; flex-direction:column; align-items:center; gap:8px; width:100%; }
+  .dd-sentence { font-size:0.95rem; font-weight:700; color:var(--dark); background:#f8f9fa; border-radius:12px; padding:10px 14px; text-align:center; width:100%; }
+  .dd-drop { display:inline-block; min-width:90px; height:34px; border:3px dashed #ccc; border-radius:8px; vertical-align:middle; line-height:28px; text-align:center; margin:0 5px; font-weight:800; color:var(--dark); transition:border .2s; }
+  .dd-drop.over { border-color:var(--accent); background:#fff8e1; }
+  .dd-drop.filled { border-style:solid; border-color:#b2bec3; background:#f0f0f0; }
+  .dd-tokens { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:6px; }
+  .dd-token { padding:6px 14px; border-radius:50px; background:var(--accent); font-weight:700; font-size:0.85rem; cursor:grab; user-select:none; transition:transform .1s; }
+  .dd-token:hover { transform:scale(1.05); }
+  .dd-token.dragging { opacity:0.4; }
+  .dd-token.disabled { pointer-events:none; opacity:0.55; }
+  .dd-check-btn { margin-top:6px; padding:7px 18px; border-radius:50px; border:none; color:white; font-family:'Nunito',sans-serif; font-weight:800; cursor:pointer; font-size:0.85rem; }
+  .dd-check-btn.a { background:var(--team-a); }
+  .dd-check-btn.b { background:var(--team-b); }
+  .dd-correct { border-color:var(--correct)!important; background:#e8f8f5!important; }
+  .dd-wrong   { border-color:var(--wrong)!important;   background:#ffe0e0!important; }
+
+  /* Auto countdown bar */
+  .auto-bar-wrap { width:100%; max-width:920px; display:none; }
+  .auto-bar { height:9px; border-radius:5px; background:linear-gradient(90deg,var(--team-a),var(--team-b)); width:100%; }
+  .auto-label { font-size:0.78rem; font-weight:700; color:#636e72; text-align:center; margin-top:3px; }
+
+  /* Flash overlay */
+  .round-flash { position:fixed; top:0;left:0;right:0;bottom:0; display:flex; align-items:center; justify-content:center; font-family:'Fredoka One',cursive; font-size:clamp(2rem,8vw,5rem); color:white; text-shadow:4px 4px 0 rgba(0,0,0,0.2); pointer-events:none; opacity:0; z-index:100; transition:opacity .25s; border-radius:0; }
+
+  /* END */
+  #endScreen { display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:30px; background:linear-gradient(135deg,#FF6B35 0%,#FFE66D 50%,#4ECDC4 100%); }
+  #endScreen h1 { font-family:'Fredoka One',cursive; font-size:clamp(2rem,7vw,4.5rem); color:white; text-shadow:4px 4px 0 rgba(0,0,0,0.2); margin-bottom:15px; }
+  .final-scores { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-bottom:28px; }
+  .final-score-card { background:white; border-radius:24px; padding:28px 38px; min-width:160px; }
+  .final-score-card .fname { font-weight:800; font-size:1rem; margin-bottom:5px; }
+  .final-score-card .fpts { font-family:'Fredoka One',cursive; font-size:3.5rem; }
+  .final-score-card.a .fname,.final-score-card.a .fpts { color:var(--team-a); }
+  .final-score-card.b .fname,.final-score-card.b .fpts { color:var(--team-b); }
+  .winner-badge { background:var(--accent); border-radius:12px; padding:4px 12px; font-weight:800; font-size:0.8rem; display:inline-block; margin-top:6px; color:var(--dark); }
+  #playAgainBtn { background:white; color:var(--dark); font-family:'Fredoka One',cursive; font-size:1.4rem; padding:14px 45px; border:none; border-radius:50px; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.2); transition:transform .15s; }
+  #playAgainBtn:hover { transform:scale(1.05); }
+
+  @media(max-width:600px) { .answer-panels { flex-direction:column; align-items:center; } .team-panel { width:100%; max-width:100%; } }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <h1>⚡ Pronoun Race!</h1>
+  <p class="subtitle">Mine · Yours · His · Hers · Its · Ours · Theirs</p>
+  <div class="info-box">
+    Two teams · same question · fastest correct answer wins! 🏆<br>
+    <strong>If one team is wrong, the other team can steal!</strong> ⚡<br>
+    After an answer → <strong>3 second countdown</strong> → auto next<br>
+    <strong>40 random questions</strong> picked from 120+ bank
+  </div>
+  <div class="team-name-inputs">
+    <div class="team-input-block a"><label>🔴 Team A</label><input type="text" id="nameA" value="Team A" maxlength="15"></div>
+    <div class="team-input-block b"><label>🔵 Team B</label><input type="text" id="nameB" value="Team B" maxlength="15"></div>
+  </div>
+  <button id="startBtn" onclick="startGame()">Let's Play! 🎮</button>
+</div>
+
+<div id="game">
+  <div class="scoreboard">
+    <div class="team-score a"><span class="name" id="scoreNameA">Team A</span><span class="pts" id="scoreA">0</span></div>
+    <div class="q-counter" id="qCounter">Q 1 / 40</div>
+    <div class="timer-wrap">
+      <svg class="timer-svg" width="50" height="50" viewBox="0 0 50 50">
+        <circle class="timer-bg" cx="25" cy="25" r="21"/>
+        <circle class="timer-ring" id="timerRing" cx="25" cy="25" r="21" stroke-dasharray="131.95" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-text" id="timerText">—</div>
+    </div>
+    <div class="team-score b"><span class="pts" id="scoreB">0</span><span class="name" id="scoreNameB">Team B</span></div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <div class="question-area">
+    <div class="q-type-badge" id="qTypeBadge">Multiple Choice</div>
+    <div class="question-card"><div class="q-text" id="qText"></div></div>
+    <div class="answer-panels" id="answerPanels"></div>
+    <div class="auto-bar-wrap" id="autoBarWrap">
+      <div class="auto-bar" id="autoBar"></div>
+      <div class="auto-label" id="autoLabel">Next in 3s…</div>
+    </div>
+  </div>
+</div>
+
+<div id="endScreen">
+  <h1>🎉 Game Over!</h1>
+  <div class="final-scores">
+    <div class="final-score-card a"><div class="fname" id="endNameA">Team A</div><div class="fpts" id="endScoreA">0</div><div id="winA"></div></div>
+    <div class="final-score-card b"><div class="fname" id="endNameB">Team B</div><div class="fpts" id="endScoreB">0</div><div id="winB"></div></div>
+  </div>
+  <button id="playAgainBtn" onclick="location.reload()">Play Again! 🔄</button>
+</div>
+
+<div class="round-flash" id="roundFlash"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  QUESTION BANK — 120+ mixed questions
+// ════════════════════════════════════════════════════════
+const BANK = [
+  // ── MULTIPLE CHOICE ─────────────────────────────────
+  {type:'mc',text:"This is my toothbrush. It is ___.",answer:'mine',opts:['mine','yours','hers','his']},
+  {type:'mc',text:"That is Lisa's diary. It is ___.",answer:'hers',opts:['mine','his','hers','ours']},
+  {type:'mc',text:"These are Tom's books. They are ___.",answer:'his',opts:['mine','his','hers','theirs']},
+  {type:'mc',text:"This is our tent. It is ___.",answer:'ours',opts:['mine','ours','theirs','yours']},
+  {type:'mc',text:"Those are the students' bikes. They are ___.",answer:'theirs',opts:['ours','his','theirs','mine']},
+  {type:'mc',text:"That is your camera. It is ___.",answer:'yours',opts:['mine','yours','his','ours']},
+  {type:'mc',text:"The cat is washing ___ face.",answer:'its',opts:['my','your','its','their']},
+  {type:'mc',text:"We are doing ___ homework.",answer:'our',opts:['my','your','our','their']},
+  {type:'mc',text:"She is combing ___ hair.",answer:'her',opts:['his','her','its','my']},
+  {type:'mc',text:"He is brushing ___ teeth.",answer:'his',opts:['her','his','its','your']},
+  {type:'mc',text:"They are cooking ___ dinner.",answer:'their',opts:['my','our','their','her']},
+  {type:'mc',text:"I am reading ___ book.",answer:'my',opts:['my','your','his','their']},
+  {type:'mc',text:"This guitar belongs to Anna. It is ___.",answer:'hers',opts:['his','mine','hers','ours']},
+  {type:'mc',text:"The dog is wagging ___ tail.",answer:'its',opts:['her','his','its','their']},
+  {type:'mc',text:"This is our barbecue set. It is ___.",answer:'ours',opts:['yours','ours','theirs','his']},
+  {type:'mc',text:"That fishing rod is mine. It is ___.",answer:'mine',opts:['yours','mine','his','hers']},
+  {type:'mc',text:"You take great photos. That camera is ___.",answer:'yours',opts:['mine','yours','hers','ours']},
+  {type:'mc',text:"Sam and Sue have a trampoline. It is ___.",answer:'theirs',opts:['ours','his','theirs','mine']},
+  {type:'mc',text:"She is writing ___ diary.",answer:'her',opts:['his','her','my','their']},
+  {type:'mc',text:"They are tidying up ___ room.",answer:'their',opts:['your','my','their','our']},
+  {type:'mc',text:"I wake up at 7. ___ alarm rings at 7.",answer:'My',opts:['My','Your','His','Their']},
+  {type:'mc',text:"We go camping. The forest tent is ___.",answer:'ours',opts:['ours','theirs','mine','his']},
+  {type:'mc',text:"He is doing ___ origami.",answer:'his',opts:['her','his','its','their']},
+  {type:'mc',text:"She gets dressed. ___ uniform is clean.",answer:'Her',opts:['His','Her','My','Their']},
+  {type:'mc',text:"You wash ___ hands before lunch.",answer:'your',opts:['my','your','her','our']},
+  {type:'mc',text:"They read ___ books every night.",answer:'their',opts:['our','my','their','his']},
+  {type:'mc',text:"The dog is sleeping. ___ bed is soft.",answer:'Its',opts:['Her','His','Its','Their']},
+  {type:'mc',text:"We visited a museum. It was ___ school trip.",answer:'our',opts:['my','your','our','their']},
+  {type:'mc',text:"I take a shower at night. ___ shower time is 8 pm.",answer:'My',opts:['My','His','Their','Your']},
+  {type:'mc',text:"This surfboard belongs to Ben. It is ___.",answer:'his',opts:['hers','his','mine','ours']},
+  {type:'mc',text:"They have a pet. They take care of ___ pet daily.",answer:'their',opts:['my','his','their','our']},
+  {type:'mc',text:"She swims every day. Swimming is ___ favourite hobby.",answer:'her',opts:['his','her','my','their']},
+  {type:'mc',text:"He plays basketball. That ball is ___.",answer:'his',opts:['hers','mine','his','ours']},
+  {type:'mc',text:"We have a garden. The flowers are ___.",answer:'ours',opts:['theirs','ours','mine','his']},
+  {type:'mc',text:"That bicycle is mine. It is ___.",answer:'mine',opts:['mine','yours','his','theirs']},
+  {type:'mc',text:"You go to school by bus. The bus pass is ___.",answer:'yours',opts:['mine','ours','yours','hers']},
+  {type:'mc',text:"She is resting. ___ bed is cosy.",answer:'Her',opts:['His','Her','My','Its']},
+  {type:'mc',text:"He walks to school. ___ school bag is heavy.",answer:'His',opts:['Her','His','My','Their']},
+  {type:'mc',text:"They are jumping on the trampoline. It is ___ trampoline.",answer:'their',opts:['our','his','their','my']},
+  {type:'mc',text:"I comb ___ hair every morning.",answer:'my',opts:['my','your','her','their']},
+  {type:'mc',text:"We play football after school. That goal is ___.",answer:'ours',opts:['mine','theirs','ours','his']},
+  {type:'mc',text:"She reads magazines. ___ favourite is about nature.",answer:'Her',opts:['His','Her','Its','My']},
+  {type:'mc',text:"He is cycling. ___ bike is red.",answer:'His',opts:['Her','His','My','Their']},
+  {type:'mc',text:"The bird sings in ___ cage.",answer:'its',opts:['her','his','its','their']},
+  {type:'mc',text:"We wash ___ car on weekends.",answer:'our',opts:['my','our','their','her']},
+  {type:'mc',text:"She is surfing. The surfboard is ___.",answer:'hers',opts:['his','hers','mine','ours']},
+  {type:'mc',text:"They are having a picnic. The basket is ___.",answer:'theirs',opts:['ours','mine','theirs','his']},
+  {type:'mc',text:"I go to bed at 9. ___ bedtime is 9 pm.",answer:'My',opts:['My','Your','His','Their']},
+  {type:'mc',text:"You are playing golf. The clubs are ___.",answer:'yours',opts:['mine','yours','his','ours']},
+  {type:'mc',text:"He takes ___ photos at the museum.",answer:'his',opts:['my','her','his','their']},
+
+  // ── TRUE / FALSE ─────────────────────────────────────
+  {type:'tf',text:"Amy's guitar → It is his. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"That is my book → It is mine. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"These are our bikes → They are theirs. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"That is Tom's pet → It is his. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"That is your camera → It is mine. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"She is washing her face → The face is hers. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"The cat drinks its milk → The milk belongs to the dog. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"We cleaned our room → The room is ours. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"This is John's board game → It is hers. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"They went camping → The tent is theirs. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"I brush my teeth → The toothbrush is mine. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"He combs his hair → The comb is hers. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"She reads her book → The book is hers. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"You wake up early → The alarm is yours. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"We cook our dinner → The dinner is theirs. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"They have a pet → The pet is ours. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"He goes to school by bus → The bus pass is his. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"I am doing my homework → The homework is mine. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"She surfs on weekends → The surfboard is his. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"The dog has a bowl → The bowl is its. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"We visit the museum → The museum is ours. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"He plays golf → The clubs are his. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"You tidy up your room → The room is yours. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"She swims every morning → Swimming is her hobby. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"They are having a picnic → The basket is mine. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"I get dressed in the morning → The clothes are mine. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"He reads a book before bed → The book is hers. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"We wash the car → The car is ours. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"She does origami → The paper crane is hers. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"They jump on the trampoline → The trampoline is theirs. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"I rest after school → My rest time is in the afternoon. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"He is fishing → The fishing rod is hers. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"She cycles to school → The bike is his. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"We are playing football → The ball is ours. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"You write a diary → The diary is yours. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"They are cooking → The kitchen is mine. TRUE or FALSE?",answer:'FALSE'},
+  {type:'tf',text:"I take photos → The camera is mine. TRUE or FALSE?",answer:'TRUE'},
+  {type:'tf',text:"She is taking a shower → The towel is hers. TRUE or FALSE?",answer:'TRUE'},
+
+  // ── DRAG & DROP ───────────────────────────────────────
+  {type:'dd',sentence:"This is my surfboard. It is ___.",answer:'mine',tokens:['mine','yours','his','theirs']},
+  {type:'dd',sentence:"That is Sarah's bike. It is ___.",answer:'hers',tokens:['hers','his','ours','mine']},
+  {type:'dd',sentence:"The dog wags ___ tail.",answer:'its',tokens:['its','her','his','their']},
+  {type:'dd',sentence:"This is our picnic basket. It is ___.",answer:'ours',tokens:['ours','theirs','yours','his']},
+  {type:'dd',sentence:"You wrote that diary. It is ___.",answer:'yours',tokens:['mine','yours','hers','ours']},
+  {type:'dd',sentence:"These are Mark's golf clubs. They are ___.",answer:'his',tokens:['hers','his','mine','theirs']},
+  {type:'dd',sentence:"They have a trampoline. It is ___.",answer:'theirs',tokens:['ours','his','theirs','mine']},
+  {type:'dd',sentence:"She is doing ___ homework.",answer:'her',tokens:['his','her','my','their']},
+  {type:'dd',sentence:"___ alarm rings at 7. (I wake up at 7.)",answer:'My',tokens:['My','Your','His','Their']},
+  {type:'dd',sentence:"We go to school by bus. The bus pass is ___.",answer:'ours',tokens:['ours','theirs','mine','yours']},
+  {type:'dd',sentence:"He is cycling. The bike is ___.",answer:'his',tokens:['hers','his','mine','theirs']},
+  {type:'dd',sentence:"She is swimming. Swimming is ___ hobby.",answer:'her',tokens:['my','his','her','their']},
+  {type:'dd',sentence:"The cat is sleeping. ___ bed is soft.",answer:'Its',tokens:['Its','Her','His','Their']},
+  {type:'dd',sentence:"I brush ___ teeth every morning.",answer:'my',tokens:['my','your','her','their']},
+  {type:'dd',sentence:"We are cooking. The kitchen is ___.",answer:'ours',tokens:['mine','his','ours','theirs']},
+  {type:'dd',sentence:"They are reading ___ books.",answer:'their',tokens:['our','my','their','her']},
+  {type:'dd',sentence:"You comb ___ hair before school.",answer:'your',tokens:['my','your','his','their']},
+  {type:'dd',sentence:"Anna plays the guitar. The guitar is ___.",answer:'hers',tokens:['his','hers','ours','mine']},
+  {type:'dd',sentence:"He takes photos at the museum. The camera is ___.",answer:'his',tokens:['my','her','his','their']},
+  {type:'dd',sentence:"We camp in the forest. The tent is ___.",answer:'ours',tokens:['ours','theirs','mine','his']},
+  {type:'dd',sentence:"She gets up early. ___ morning routine starts at 6.",answer:'Her',tokens:['His','Her','My','Their']},
+  {type:'dd',sentence:"They wash ___ car on Sundays.",answer:'their',tokens:['my','our','their','her']},
+  {type:'dd',sentence:"I am reading a book. The book is ___.",answer:'mine',tokens:['mine','yours','hers','ours']},
+  {type:'dd',sentence:"He does origami. The paper crane is ___.",answer:'his',tokens:['hers','his','mine','theirs']},
+  {type:'dd',sentence:"She takes a shower. ___ towel is pink.",answer:'Her',tokens:['His','Her','My','Their']},
+  {type:'dd',sentence:"You watch TV. The remote control is ___.",answer:'yours',tokens:['mine','yours','his','ours']},
+  {type:'dd',sentence:"They play basketball. The ball is ___.",answer:'theirs',tokens:['ours','his','theirs','mine']},
+  {type:'dd',sentence:"We have a pet fish. The fish is ___.",answer:'ours',tokens:['mine','his','ours','theirs']},
+  {type:'dd',sentence:"I go to bed at 9. ___ bedtime is 9 pm.",answer:'My',tokens:['My','Your','His','Their']},
+  {type:'dd',sentence:"She writes ___ diary every night.",answer:'her',tokens:['my','his','her','their']},
+  {type:'dd',sentence:"The bird sings in ___ cage.",answer:'its',tokens:['her','his','its','their']},
+  {type:'dd',sentence:"We play football. The ball is ___.",answer:'ours',tokens:['mine','theirs','ours','his']},
+  {type:'dd',sentence:"He fishes on Saturdays. The rod is ___.",answer:'his',tokens:['hers','mine','his','ours']},
+  {type:'dd',sentence:"You have a board game. The game is ___.",answer:'yours',tokens:['mine','ours','yours','theirs']},
+  {type:'dd',sentence:"They jump on the trampoline. The trampoline is ___.",answer:'theirs',tokens:['mine','ours','his','theirs']},
+];
+
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+let teamA='Team A',teamB='Team B';
+let scoreA=0,scoreB=0;
+let gameQ=[],currentQ=0;
+let roundOver=false, answeredA=false, answeredB=false;
+const TOTAL=40,DELAY=3000,CIRC=131.95;
+let countdownInterval=null;
+
+function shuffle(a){return a.slice().sort(()=>Math.random()-0.5);}
+
+// ── START ────────────────────────────────────────────────
+function startGame(){
+  teamA=document.getElementById('nameA').value.trim()||'Team A';
+  teamB=document.getElementById('nameB').value.trim()||'Team B';
+  gameQ=shuffle(BANK).slice(0,TOTAL);
+  document.getElementById('intro').style.display='none';
+  document.getElementById('game').style.display='flex';
+  document.getElementById('scoreNameA').textContent=teamA;
+  document.getElementById('scoreNameB').textContent=teamB;
+  loadQ();
+}
+
+// ── LOAD QUESTION ───────────────────────────────────────
+function loadQ(){
+  stopCountdown();
+  roundOver=false;
+  answeredA=false;
+  answeredB=false;
+  document.getElementById('autoBarWrap').style.display='none';
+  const q=gameQ[currentQ];
+  document.getElementById('qCounter').textContent=`Q ${currentQ+1} / ${TOTAL}`;
+  document.getElementById('progressFill').style.width=`${(currentQ/TOTAL)*100}%`;
+
+  const badge=document.getElementById('qTypeBadge');
+  if(q.type==='mc'){badge.textContent='🔤 Multiple Choice';badge.className='q-type-badge';}
+  else if(q.type==='tf'){badge.textContent='✅ True or False';badge.className='q-type-badge tf';}
+  else{badge.textContent='🎯 Drag & Drop';badge.className='q-type-badge dd';}
+
+  const qText=document.getElementById('qText');
+  if(q.type!=='dd') qText.textContent=q.text||q.sentence;
+  else qText.innerHTML=(q.sentence||'').replace('___','<span class="blank">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>');
+
+  const panels=document.getElementById('answerPanels');
+  panels.innerHTML='';
+  if(q.type==='mc') renderMC(q);
+  else if(q.type==='tf') renderTF(q);
+  else renderDD(q);
+}
+
+// ── HELPER FUNCTIONS ─────────────────────────────────────
+function disableTeamPanel(team) {
+  const panel = document.querySelector(`.team-panel.${team.toLowerCase()}`);
+  if(panel) panel.classList.add('disabled-panel');
+}
+
+function revealAllMC(correct) {
+  document.querySelectorAll('.opt-btn').forEach(b => {
+    b.classList.add('disabled');
+    if(b.textContent.toLowerCase() === correct.toLowerCase()) b.classList.add('reveal');
+  });
+}
+
+function revealAllTF(correct) {
+  document.querySelectorAll('.tf-btn').forEach(b => {
+    b.classList.add('disabled');
+    if((b.classList.contains('true-btn') ? 'TRUE' : 'FALSE') === correct) b.classList.add('reveal');
+  });
+}
+
+function revealAllDD(answer) {
+  document.querySelectorAll('.dd-area').forEach(area => {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'margin-top:4px;font-size:0.85rem;color:var(--correct);font-weight:800;background:#e8f8f5;padding:4px 12px;border-radius:12px;';
+    hint.textContent = `✔ Correct: ${answer}`;
+    area.appendChild(hint);
+  });
+}
+
+// ── AFTER ANSWER ─────────────────────────────────────────
+function afterAnswer(team,correct){
+  if(correct){
+    if(team==='A'){scoreA++;document.getElementById('scoreA').textContent=scoreA;}
+    else{scoreB++;document.getElementById('scoreB').textContent=scoreB;}
+    flash(`🎉 ${team==='A'?teamA:teamB} +1`,team);
+  } else {
+    flash('❌ Both Wrong!', null);
+  }
+  showAutoBar();
+  startCountdown();
+}
+
+function showAutoBar(){
+  const wrap=document.getElementById('autoBarWrap');
+  wrap.style.display='block';
+  const bar=document.getElementById('autoBar');
+  bar.style.transition='none';bar.style.width='100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    bar.style.transition=`width ${DELAY}ms linear`;
+    bar.style.width='0%';
+  }));
+}
+
+// ── COUNTDOWN ────────────────────────────────────────────
+function startCountdown(){
+  stopCountdown();
+  const ring=document.getElementById('timerRing');
+  const txt=document.getElementById('timerText');
+  ring.style.stroke='var(--accent)';
+  ring.style.strokeDashoffset='0';
+  let elapsed=0;
+  txt.textContent='3';
+  countdownInterval=setInterval(()=>{
+    elapsed+=100;
+    ring.style.strokeDashoffset=CIRC*(elapsed/DELAY);
+    const rem=Math.ceil((DELAY-elapsed)/1000);
+    txt.textContent=rem>0?rem:'';
+    if(rem<=1) ring.style.stroke='var(--wrong)';
+    if(elapsed>=DELAY){clearInterval(countdownInterval);nextQ();}
+  },100);
+}
+function stopCountdown(){
+  clearInterval(countdownInterval);
+  document.getElementById('timerText').textContent='—';
+  const ring=document.getElementById('timerRing');
+  ring.style.strokeDashoffset='0';
+  ring.style.stroke='var(--accent)';
+}
+
+// ── NEXT ─────────────────────────────────────────────────
+function nextQ(){
+  stopCountdown();
+  currentQ++;
+  if(currentQ>=TOTAL) showEnd();
+  else loadQ();
+}
+
+// ── MULTIPLE CHOICE ──────────────────────────────────────
+function renderMC(q){
+  const panels=document.getElementById('answerPanels');
+  ['A','B'].forEach(team=>{
+    const panel=document.createElement('div');
+    panel.className=`team-panel ${team.toLowerCase()}`;
+    panel.innerHTML=`<div class="panel-label">${team==='A'?teamA:teamB}</div>`;
+    const grid=document.createElement('div');grid.className='options-grid';
+    shuffle(q.opts).forEach(opt=>{
+      const btn=document.createElement('button');btn.className='opt-btn';btn.textContent=opt;
+      btn.onclick=()=>handleMC(team,opt,q.answer,btn);
+      grid.appendChild(btn);
+    });
+    panel.appendChild(grid);panels.appendChild(panel);
+  });
+}
+function handleMC(team,chosen,correct,btn){
+  if(roundOver) return;
+  if(team==='A' && answeredA) return;
+  if(team==='B' && answeredB) return;
+
+  const ok=chosen.toLowerCase()===correct.toLowerCase();
+  
+  if(ok) {
+    roundOver = true;
+    btn.classList.add('correct');
+    revealAllMC(correct);
+    disableTeamPanel('A'); disableTeamPanel('B');
+    afterAnswer(team, true);
+  } else {
+    btn.classList.add('wrong');
+    disableTeamPanel(team);
+    if(team==='A') answeredA = true;
+    if(team==='B') answeredB = true;
+
+    if(answeredA && answeredB) {
+      roundOver = true;
+      revealAllMC(correct);
+      afterAnswer(null, false);
+    }
+  }
+}
+
+// ── TRUE / FALSE ─────────────────────────────────────────
+function renderTF(q){
+  const panels=document.getElementById('answerPanels');
+  ['A','B'].forEach(team=>{
+    const panel=document.createElement('div');
+    panel.className=`team-panel ${team.toLowerCase()}`;
+    panel.innerHTML=`<div class="panel-label">${team==='A'?teamA:teamB}</div>`;
+    const grid=document.createElement('div');grid.className='tf-grid';
+    ['TRUE','FALSE'].forEach(val=>{
+      const btn=document.createElement('button');
+      btn.className=`tf-btn ${val==='TRUE'?'true-btn':'false-btn'}`;
+      btn.textContent=val==='TRUE'?'✅ TRUE':'❌ FALSE';
+      btn.onclick=()=>handleTF(team,val,q.answer,btn);
+      grid.appendChild(btn);
+    });
+    panel.appendChild(grid);panels.appendChild(panel);
+  });
+}
+function handleTF(team,chosen,correct,btn){
+  if(roundOver) return;
+  if(team==='A' && answeredA) return;
+  if(team==='B' && answeredB) return;
+
+  const ok=chosen===correct;
+  
+  if(ok) {
+    roundOver = true;
+    btn.classList.add('correct');
+    revealAllTF(correct);
+    disableTeamPanel('A'); disableTeamPanel('B');
+    afterAnswer(team, true);
+  } else {
+    btn.classList.add('wrong');
+    disableTeamPanel(team);
+    if(team==='A') answeredA = true;
+    if(team==='B') answeredB = true;
+
+    if(answeredA && answeredB) {
+      roundOver = true;
+      revealAllTF(correct);
+      afterAnswer(null, false);
+    }
+  }
+}
+
+// ── DRAG & DROP ──────────────────────────────────────────
+let touchToken=null,touchDrop=null;
+function renderDD(q){
+  const panels=document.getElementById('answerPanels');
+  ['A','B'].forEach(team=>{
+    const panel=document.createElement('div');
+    panel.className=`team-panel ${team.toLowerCase()}`;
+    panel.innerHTML=`<div class="panel-label">${team==='A'?teamA:teamB}</div>`;
+    const area=document.createElement('div');area.className='dd-area';
+
+    const sent=document.createElement('div');sent.className='dd-sentence';
+    const dropId=`drop-${team}`;
+    sent.innerHTML=(q.sentence||'').replace('___',`<span class="dd-drop" id="${dropId}"></span>`);
+    area.appendChild(sent);
+
+    const tokArea=document.createElement('div');tokArea.className='dd-tokens';
+    shuffle(q.tokens).forEach(tok=>{
+      const t=document.createElement('div');t.className='dd-token';t.textContent=tok;t.draggable=true;t.dataset.val=tok;
+      t.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',tok);t.classList.add('dragging');});
+      t.addEventListener('dragend',()=>t.classList.remove('dragging'));
+      t.addEventListener('touchstart',()=>{touchToken=t;},{passive:true});
+      t.addEventListener('touchmove',e=>{
+        e.preventDefault();
+        const el=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY);
+        document.querySelectorAll('.dd-drop').forEach(d=>d.classList.remove('over'));
+        touchDrop=el&&el.classList.contains('dd-drop')?el:null;
+        if(touchDrop) touchDrop.classList.add('over');
+      },{passive:false});
+      t.addEventListener('touchend',()=>{
+        if(touchDrop&&touchToken){
+          touchDrop.textContent=touchToken.dataset.val;
+          touchDrop.dataset.chosen=touchToken.dataset.val;
+          touchDrop.classList.add('filled');touchDrop.classList.remove('over');
+        }
+        touchToken=null;touchDrop=null;
+      },{passive:true});
+      tokArea.appendChild(t);
+    });
+    area.appendChild(tokArea);
+
+    const chk=document.createElement('button');chk.className=`dd-check-btn ${team.toLowerCase()}`;chk.textContent='✔ Check';
+    chk.onclick=()=>checkDD(team,dropId,q.answer,area,chk);
+    area.appendChild(chk);
+
+    panel.appendChild(area);panels.appendChild(panel);
+
+    setTimeout(()=>{
+      const dz=document.getElementById(dropId);
+      if(!dz)return;
+      dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+      dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+      dz.addEventListener('drop',e=>{
+        e.preventDefault();
+        const val=e.dataTransfer.getData('text/plain');
+        dz.textContent=val;dz.dataset.chosen=val;
+        dz.classList.add('filled');dz.classList.remove('over');
+      });
+    },50);
+  });
+}
+function checkDD(team,dropId,answer,area,chk){
+  if(roundOver) return;
+  if(team==='A' && answeredA) return;
+  if(team==='B' && answeredB) return;
+
+  const dz=document.getElementById(dropId);
+  if(!dz||!dz.dataset.chosen)return;
+  
+  const ok=dz.dataset.chosen.toLowerCase()===answer.toLowerCase();
+  
+  if(ok) {
+    roundOver = true;
+    dz.classList.add('dd-correct');
+    chk.disabled = true;
+    disableTeamPanel('A'); disableTeamPanel('B');
+    afterAnswer(team, true);
+  } else {
+    dz.classList.add('dd-wrong');
+    chk.disabled = true;
+    disableTeamPanel(team);
+    if(team==='A') answeredA = true;
+    if(team==='B') answeredB = true;
+
+    if(answeredA && answeredB) {
+      roundOver = true;
+      revealAllDD(answer);
+      afterAnswer(null, false);
+    }
+  }
+}
+
+// ── FLASH ─────────────────────────────────────────────────
+function flash(msg,team){
+  const el=document.getElementById('roundFlash');
+  el.textContent=msg;
+  if(team==='A') el.style.background='rgba(255,107,53,0.88)';
+  else if(team==='B') el.style.background='rgba(78,205,196,0.88)';
+  else el.style.background='rgba(45,52,54,0.88)';
+  el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',1100);
+}
+
+// ── END ───────────────────────────────────────────────────
+function showEnd(){
+  document.getElementById('game').style.display='none';
+  document.getElementById('endScreen').style.display='flex';
+  document.getElementById('endNameA').textContent=teamA;
+  document.getElementById('endNameB').textContent=teamB;
+  document.getElementById('endScoreA').textContent=scoreA;
+  document.getElementById('endScoreB').textContent=scoreB;
+  if(scoreA>scoreB) document.getElementById('winA').innerHTML='<span class="winner-badge">🏆 WINNER!</span>';
+  else if(scoreB>scoreA) document.getElementById('winB').innerHTML='<span class="winner-badge">🏆 WINNER!</span>';
+  else{document.getElementById('winA').innerHTML='<span class="winner-badge">🤝 TIE!</span>';document.getElementById('winB').innerHTML='<span class="winner-badge">🤝 TIE!</span>';}
+}
+</script>
+</body>
+</html>
