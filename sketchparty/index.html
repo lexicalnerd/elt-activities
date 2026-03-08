@@ -693,11 +693,12 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div class="tilt-overlay">
       <div id="tilt-cursor"></div>
     </div>
-    <!-- Hint shown briefly on first use -->
-    <div id="wii-hint" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.4s;">
-      <div style="background:rgba(0,0,0,0.6);color:#fff;padding:12px 20px;border-radius:12px;font-weight:800;font-size:0.9rem;text-align:center;">
-        🕹️ Move phone to aim<br>Hold canvas to draw
-      </div>
+    <!-- Tap-to-activate overlay (iOS needs permission from a real gesture) -->
+    <div id="wii-activate" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,14,26,0.85);cursor:pointer;border-radius:14px;"
+      onclick="activateWiimote()">
+      <div style="font-size:3rem;margin-bottom:12px;">🕹️</div>
+      <div style="color:#fff;font-weight:900;font-size:1.1rem;margin-bottom:6px;">Tap to Enable Controls</div>
+      <div style="color:#aaa;font-weight:700;font-size:0.85rem;text-align:center;padding:0 20px;">Move phone to aim · Hold to draw</div>
     </div>
   </div>
 
@@ -1349,12 +1350,17 @@ function initPlayerCanvas() {
   const canvas = $('player-canvas');
   resizeCanvas(canvas);
   clearCanvas(canvas);
-  // Request permission then start wiimote mode
+  // Show the tap-to-activate overlay — permission must come from a real user gesture
+  const overlay = $('wii-activate');
+  if (overlay) overlay.style.display = 'flex';
+  tiltX = 0.5; tiltY = 0.5;
+}
+
+function activateWiimote() {
+  // This is called from a real tap — safe to request permission on iOS
+  const overlay = $('wii-activate');
+  if (overlay) overlay.style.display = 'none';
   requestWiiPermission();
-  // Show hint briefly
-  const hint = $('wii-hint');
-  hint.style.opacity = '1';
-  setTimeout(() => { hint.style.opacity = '0'; }, 2500);
 }
 
 function getCanvasPos(canvas, clientX, clientY) {
@@ -1560,6 +1566,9 @@ function onWiiMotion(e) {
 }
 
 function wiiTouchDown(e) {
+  // If overlay still visible, let the click fall through to activateWiimote
+  const overlay = $('wii-activate');
+  if (overlay && overlay.style.display !== 'none') return;
   e.preventDefault();
   wiiPenDown = true;
   currentStrokeId = ++strokeId;
