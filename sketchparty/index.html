@@ -425,6 +425,9 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
 #screen-player-drawing {
   padding: 12px;
   gap: 10px;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 .draw-topbar { display: flex; align-items: center; gap: 10px; }
 .canvas-container-player {
@@ -435,6 +438,9 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   background: white;
   border: 3px solid var(--lime);
   min-height: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
 }
 .draw-toolbar {
   display: flex; align-items: center; gap: 8px;
@@ -672,42 +678,31 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div class="timer-ring" id="player-timer" style="width:56px;height:56px;font-size:1rem;">60</div>
   </div>
 
-  <!-- Controls toggle -->
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div class="mode-toggle">
-      <button class="mode-btn active" id="mode-touch-btn" onclick="setDrawMode('touch')">👆 Touch</button>
-      <button class="mode-btn" id="mode-tilt-btn" onclick="setDrawMode('tilt')">🕹️ Wiimote</button>
-    </div>
-    <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()" style="margin-left:auto;">🗑️ Clear</button>
-    <button class="btn btn-ghost btn-sm" id="undo-btn" onclick="sendUndo()">↩ Undo</button>
-  </div>
-
-  <!-- Canvas -->
-  <div class="canvas-container-player" id="draw-canvas-container">
+  <!-- Canvas — hold anywhere to draw -->
+  <div class="canvas-container-player" id="draw-canvas-container"
+    ontouchstart="wiiTouchDown(event)" ontouchend="wiiTouchUp(event)" ontouchcancel="wiiTouchUp(event)"
+    onmousedown="wiiTouchDown(event)" onmouseup="wiiTouchUp(event)" onmouseleave="wiiTouchUp(event)">
     <canvas id="player-canvas"></canvas>
     <div class="tilt-overlay">
-      <div id="tilt-cursor" style="display:none;"></div>
+      <div id="tilt-cursor"></div>
+    </div>
+    <!-- Hint shown briefly on first use -->
+    <div id="wii-hint" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity 0.4s;">
+      <div style="background:rgba(0,0,0,0.6);color:#fff;padding:12px 20px;border-radius:12px;font-weight:800;font-size:0.9rem;text-align:center;">
+        🕹️ Move phone to aim<br>Hold canvas to draw
+      </div>
     </div>
   </div>
 
-  <!-- Toolbar: colors + brush -->
+  <!-- Toolbar: colors + brush + utils -->
   <div class="draw-toolbar">
     <div class="color-palette" id="color-palette"></div>
     <div class="toolbar-sep"></div>
     <div class="brush-sizes" id="brush-sizes"></div>
     <div class="toolbar-sep"></div>
-    <!-- Eraser -->
-    <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜ Erase</button>
-  </div>
-
-  <!-- Wiimote hold-to-draw button (hidden in touch mode) -->
-  <div id="tilt-draw-area" style="display:none;display:flex;gap:8px;">
-    <button id="draw-hold-btn" style="flex:1;"
-      ontouchstart="startDrawing()" ontouchend="stopDrawing()" ontouchcancel="stopDrawing()"
-      onmousedown="startDrawing()" onmouseup="stopDrawing()">
-      🖊️ HOLD TO DRAW
-    </button>
-    <button class="btn btn-ghost" style="flex-shrink:0;padding:0 16px;" onclick="recenterWii()" title="Recenter cursor">⊙ Reset</button>
+    <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜</button>
+    <button class="btn btn-ghost btn-sm" onclick="recenterWii()" title="Recenter cursor">⊙</button>
+    <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()">🗑️</button>
   </div>
 </div>
 
@@ -1351,40 +1346,12 @@ function initPlayerCanvas() {
   const canvas = $('player-canvas');
   resizeCanvas(canvas);
   clearCanvas(canvas);
-
-  // Touch events
-  canvas.ontouchstart = (e) => {
-    if (drawMode !== 'touch') return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const pos = getCanvasPos(canvas, t.clientX, t.clientY);
-    startStroke(canvas, pos.x, pos.y);
-  };
-  canvas.ontouchmove = (e) => {
-    if (drawMode !== 'touch') return;
-    e.preventDefault();
-    const t = e.touches[0];
-    const pos = getCanvasPos(canvas, t.clientX, t.clientY);
-    continueStroke(canvas, pos.x, pos.y);
-  };
-  canvas.ontouchend = canvas.ontouchcancel = (e) => {
-    if (drawMode !== 'touch') return;
-    e.preventDefault();
-    endStroke();
-  };
-
-  // Mouse events (desktop fallback)
-  canvas.onmousedown = (e) => {
-    if (drawMode !== 'touch') return;
-    const pos = getCanvasPos(canvas, e.clientX, e.clientY);
-    startStroke(canvas, pos.x, pos.y);
-  };
-  canvas.onmousemove = (e) => {
-    if (drawMode !== 'touch' || !isStroking) return;
-    const pos = getCanvasPos(canvas, e.clientX, e.clientY);
-    continueStroke(canvas, pos.x, pos.y);
-  };
-  canvas.onmouseup = canvas.onmouseleave = () => { if (drawMode === 'touch') endStroke(); };
+  // Wiimote is the only mode — enable it automatically
+  enableWiiMode();
+  // Show hint briefly
+  const hint = $('wii-hint');
+  hint.style.opacity = '1';
+  setTimeout(() => { hint.style.opacity = '0'; }, 2200);
 }
 
 function getCanvasPos(canvas, clientX, clientY) {
@@ -1508,19 +1475,8 @@ const WII_DEADZONE    = 1.8;     // deg/s below which movement is ignored (kills
 const WII_SMOOTH      = 0.18;    // 0–1: lower = more smoothing (exponential moving average)
 
 function setDrawMode(mode) {
-  drawMode = mode;
-  $('mode-touch-btn').classList.toggle('active', mode === 'touch');
-  $('mode-tilt-btn').classList.toggle('active', mode === 'tilt');
-  $('tilt-draw-area').style.display = mode === 'tilt' ? 'block' : 'none';
-  $('tilt-cursor').style.display = mode === 'tilt' ? 'block' : 'none';
-  $('player-canvas').style.pointerEvents = mode === 'touch' ? 'auto' : 'none';
-
-  if (mode === 'tilt') {
-    requestWiiPermission();
-  } else {
-    wiiPenDown = false;
-    window.removeEventListener('devicemotion', onWiiMotion);
-  }
+  drawMode = 'tilt'; // always wiimote
+  $('player-canvas').style.pointerEvents = 'none';
 }
 
 function requestWiiPermission() {
@@ -1540,11 +1496,17 @@ function requestWiiPermission() {
 
 function enableWiiMode() {
   wiiMotionGranted = true;
-  // Start cursor in centre
   tiltX = 0.5; tiltY = 0.5;
   lastTiltX = 0.5; lastTiltY = 0.5;
   wiiLastTime = performance.now();
-  notify('🕹️ Wiimote ready! Point & hold to draw', 'var(--blue)');
+  drawMode = 'tilt';
+  $('player-canvas').style.pointerEvents = 'none';
+  const cursor = $('tilt-cursor');
+  const container = $('draw-canvas-container');
+  const cRect = container.getBoundingClientRect();
+  cursor.style.left = (0.5 * cRect.width) + 'px';
+  cursor.style.top  = (0.5 * cRect.height) + 'px';
+  window.removeEventListener('devicemotion', onWiiMotion);
   window.addEventListener('devicemotion', onWiiMotion);
 }
 
@@ -1564,8 +1526,9 @@ function onWiiMotion(e) {
   if (Math.abs(gx) < WII_DEADZONE) gx = 0;
   if (Math.abs(gy) < WII_DEADZONE) gy = 0;
 
-  const rawX = Math.max(0, Math.min(1, tiltX + gx * dt * WII_SENSITIVITY));
-  const rawY = Math.max(0, Math.min(1, tiltY + gy * dt * WII_SENSITIVITY));
+  // Inverted: positive rotation moves cursor in opposite direction (natural pointing feel)
+  const rawX = Math.max(0, Math.min(1, tiltX - gx * dt * WII_SENSITIVITY));
+  const rawY = Math.max(0, Math.min(1, tiltY - gy * dt * WII_SENSITIVITY));
 
   // Exponential smoothing — blends toward raw target gradually
   lastTiltX = tiltX;
@@ -1599,7 +1562,8 @@ function onWiiMotion(e) {
   }
 }
 
-function startDrawing() {
+function wiiTouchDown(e) {
+  e.preventDefault();
   wiiPenDown = true;
   currentStrokeId = ++strokeId;
   const canvas = $('player-canvas');
@@ -1612,13 +1576,15 @@ function startDrawing() {
   };
   drawOnCanvas(canvas, dot);
   send(hostConn, { type: 'stroke', stroke: dot });
-  $('draw-hold-btn').classList.add('active');
+  // Visual feedback — border pulse
+  $('draw-canvas-container').style.borderColor = 'var(--coral)';
 }
 
-function stopDrawing() {
+function wiiTouchUp(e) {
+  if (!wiiPenDown) return;
   wiiPenDown = false;
   currentStrokeId = null;
-  $('draw-hold-btn').classList.remove('active');
+  $('draw-canvas-container').style.borderColor = 'var(--lime)';
 }
 
 function recenterWii() {
