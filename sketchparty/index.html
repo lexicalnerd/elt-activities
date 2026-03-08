@@ -1465,36 +1465,28 @@ function sendUndo() {
 
 // =============================================
 //  WIIMOTE-STYLE MOTION DRAWING
-//  Uses deviceorientation (gamma/beta absolute angles) with
-//  delta tracking — moves cursor by how much the phone rotated
-//  since last frame. Universally supported on iOS & Android.
+//  Uses devicemotion.rotationRate — angular velocity in deg/s.
+//  Cursor moves relative to how you swing the phone, just like a Wiimote.
 // =============================================
 
 let wiiPenDown = false;
-let wiiPrevGamma = null; // previous absolute angle (left/right)
-let wiiPrevBeta  = null; // previous absolute angle (up/down)
+let wiiLastTime = 0;
 
-const WII_SENSITIVITY = 0.012; // fraction of canvas per degree of rotation
-const WII_DEADZONE    = 0.8;   // degrees — ignore below this (kills tremor)
-const WII_SMOOTH      = 0.3;   // exponential smoothing 0–1 (higher = more responsive)
+const WII_SENSITIVITY = 0.0018; // original working value
+const WII_DEADZONE    = 1.5;    // deg/s — kills tremor without blocking real motion
+const WII_SMOOTH      = 0.35;   // exponential smooth: higher = more responsive
 
-function setDrawMode(mode) {
-  // wiimote-only, no-op
-}
+function setDrawMode(mode) { /* wiimote only */ }
 
 function requestWiiPermission() {
-  // iOS 13+ needs explicit permission for DeviceOrientationEvent
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
-    DeviceOrientationEvent.requestPermission()
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
       .then(state => {
         if (state === 'granted') enableWiiMode();
-        else notify('Motion permission denied — try again', 'var(--coral)');
+        else notify('Motion permission denied', 'var(--coral)');
       })
-      .catch(err => {
-        console.warn('orientation permission error', err);
-        enableWiiMode(); // try anyway on non-iOS
-      });
+      .catch(() => enableWiiMode());
   } else {
     enableWiiMode();
   }
@@ -1503,61 +1495,46 @@ function requestWiiPermission() {
 function enableWiiMode() {
   tiltX = 0.5; tiltY = 0.5;
   lastTiltX = 0.5; lastTiltY = 0.5;
-  wiiPrevGamma = null;
-  wiiPrevBeta  = null;
+  wiiLastTime = performance.now();
   drawMode = 'tilt';
   $('player-canvas').style.pointerEvents = 'none';
 
-  // Position cursor in centre
   const container = $('draw-canvas-container');
   const cRect = container.getBoundingClientRect();
   const cursor = $('tilt-cursor');
   cursor.style.left = (0.5 * cRect.width)  + 'px';
   cursor.style.top  = (0.5 * cRect.height) + 'px';
 
-  window.removeEventListener('deviceorientation', onWiiOrientation);
-  window.addEventListener('deviceorientation', onWiiOrientation, { passive: true });
+  window.removeEventListener('devicemotion', onWiiMotion);
+  window.addEventListener('devicemotion', onWiiMotion);
 }
 
-function onWiiOrientation(e) {
-  // gamma: left/right tilt, range roughly -90 to 90
-  // beta:  front/back tilt, range roughly -180 to 180
-  const gamma = e.gamma;
-  const beta  = e.beta;
-  if (gamma == null || beta == null) return;
+function onWiiMotion(e) {
+  const rr = e.rotationRate;
+  if (!rr) return;
 
-  // First event — just seed the previous values, no movement yet
-  if (wiiPrevGamma === null) { wiiPrevGamma = gamma; wiiPrevBeta = beta; return; }
+  const now = performance.now();
+  const dt = Math.min(now - wiiLastTime, 50);
+  wiiLastTime = now;
 
-  // Delta since last frame (degrees)
-  let dGamma = gamma - wiiPrevGamma;
-  let dBeta  = beta  - wiiPrevBeta;
-  wiiPrevGamma = gamma;
-  wiiPrevBeta  = beta;
+  // gamma = left/right swing, beta = up/down swing
+  let gx = rr.gamma || 0;
+  let gy = rr.beta  || 0;
 
-  // Handle wrap-around (e.g. 179 → -179)
-  if (dGamma >  90) dGamma -= 180;
-  if (dGamma < -90) dGamma += 180;
-  if (dBeta  >  90) dBeta  -= 180;
-  if (dBeta  < -90) dBeta  += 180;
+  // Dead zone
+  if (Math.abs(gx) < WII_DEADZONE) gx = 0;
+  if (Math.abs(gy) < WII_DEADZONE) gy = 0;
 
-  // Dead zone — discard micro-tremor
-  if (Math.abs(dGamma) < WII_DEADZONE) dGamma = 0;
-  if (Math.abs(dBeta)  < WII_DEADZONE) dBeta  = 0;
+  // Left/right: gamma positive = tilt right = cursor right (+X)
+  // Up/down:    beta  positive = tilt forward = cursor down, so invert for natural feel
+  const rawX = Math.max(0, Math.min(1, tiltX + gx * dt * WII_SENSITIVITY));
+  const rawY = Math.max(0, Math.min(1, tiltY - gy * dt * WII_SENSITIVITY));
 
-  // Map to cursor delta
-  // gamma increasing (tilt right) → cursor right (+X)
-  // beta  increasing (tilt forward/down) → cursor down (+Y), so invert
-  const rawX = Math.max(0, Math.min(1, tiltX + dGamma * WII_SENSITIVITY));
-  const rawY = Math.max(0, Math.min(1, tiltY - dBeta  * WII_SENSITIVITY));
-
-  // Smooth
   lastTiltX = tiltX;
   lastTiltY = tiltY;
   tiltX += (rawX - tiltX) * WII_SMOOTH;
   tiltY += (rawY - tiltY) * WII_SMOOTH;
 
-  // Update cursor position on screen
   const container = $('draw-canvas-container');
   const cRect = container.getBoundingClientRect();
   const cursor = $('tilt-cursor');
@@ -1565,7 +1542,6 @@ function onWiiOrientation(e) {
   cursor.style.top  = (tiltY * cRect.height) + 'px';
   cursor.className  = wiiPenDown ? 'drawing' : '';
 
-  // Draw if held
   if (wiiPenDown) {
     const moved = Math.abs(tiltX - lastTiltX) > 0.001 || Math.abs(tiltY - lastTiltY) > 0.001;
     if (!moved) return;
