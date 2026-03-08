@@ -1503,7 +1503,9 @@ function sendUndo() {
 let wiiMotionGranted = false;
 let wiiPenDown = false;
 let wiiLastTime = 0;
-const WII_SENSITIVITY = 0.0018; // tune: higher = faster cursor
+const WII_SENSITIVITY = 0.00045; // lower = slower cursor
+const WII_DEADZONE    = 1.8;     // deg/s below which movement is ignored (kills tremor)
+const WII_SMOOTH      = 0.18;    // 0–1: lower = more smoothing (exponential moving average)
 
 function setDrawMode(mode) {
   drawMode = mode;
@@ -1556,16 +1558,20 @@ function onWiiMotion(e) {
   const dt = Math.min(now - wiiLastTime, 50); // cap dt to avoid jumps
   wiiLastTime = now;
 
-  // rotationRate.gamma = rotation around Z (pointing left/right like a remote) → X axis
-  // rotationRate.beta  = rotation around X (pointing up/down)               → Y axis
-  // Values are in deg/s — integrate over dt to get delta angle, scale to [0,1] canvas space
-  const dx = (rr.gamma || 0) * dt * WII_SENSITIVITY;
-  const dy = (rr.beta  || 0) * dt * WII_SENSITIVITY;
+  // Apply dead zone — ignore tiny tremors below threshold
+  let gx = rr.gamma || 0;
+  let gy = rr.beta  || 0;
+  if (Math.abs(gx) < WII_DEADZONE) gx = 0;
+  if (Math.abs(gy) < WII_DEADZONE) gy = 0;
 
+  const rawX = Math.max(0, Math.min(1, tiltX + gx * dt * WII_SENSITIVITY));
+  const rawY = Math.max(0, Math.min(1, tiltY + gy * dt * WII_SENSITIVITY));
+
+  // Exponential smoothing — blends toward raw target gradually
   lastTiltX = tiltX;
   lastTiltY = tiltY;
-  tiltX = Math.max(0, Math.min(1, tiltX + dx));
-  tiltY = Math.max(0, Math.min(1, tiltY + dy));
+  tiltX = tiltX + (rawX - tiltX) * WII_SMOOTH;
+  tiltY = tiltY + (rawY - tiltY) * WII_SMOOTH;
 
   // Update on-screen cursor
   const container = $('draw-canvas-container');
