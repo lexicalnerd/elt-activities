@@ -693,7 +693,8 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div class="tilt-overlay">
       <div id="tilt-cursor"></div>
     </div>
-    <!-- Tap-to-activate overlay (iOS needs permission from a real gesture) -->
+  <!-- Debug: live rotationRate values -->
+  <div id="wii-debug" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);color:lime;font-family:monospace;font-size:11px;padding:6px 10px;border-radius:6px;pointer-events:none;z-index:20;line-height:1.8;"></div>
     <div id="wii-activate" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(15,14,26,0.85);cursor:pointer;border-radius:14px;"
       onclick="activateWiimote()">
       <div style="font-size:3rem;margin-bottom:12px;">🕹️</div>
@@ -1520,6 +1521,13 @@ function enableWiiMode() {
 function onWiiMotion(e) {
   const rr = e.rotationRate;
   if (!rr) return;
+
+  // Debug: show raw values for all axes
+  const dbg = $('wii-debug');
+  if (dbg) dbg.innerHTML =
+    `α: ${(rr.alpha||0).toFixed(1)}<br>` +
+    `β: ${(rr.beta ||0).toFixed(1)}<br>` +
+    `γ: ${(rr.gamma||0).toFixed(1)}`;
 
   const now = performance.now();
   const dt = Math.min(now - wiiLastTime, 50);
