@@ -700,9 +700,9 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div class="toolbar-sep"></div>
     <div class="brush-sizes" id="brush-sizes"></div>
     <div class="toolbar-sep"></div>
-    <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜</button>
-    <button class="btn btn-ghost btn-sm" onclick="recenterWii()" title="Recenter cursor">⊙</button>
-    <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()">🗑️</button>
+    <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜ Erase</button>
+    <button class="btn btn-ghost btn-sm" onclick="recenterWii()" title="Recenter cursor">⊙ Center</button>
+    <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()">🗑️ Clear</button>
   </div>
 </div>
 
@@ -1471,8 +1471,8 @@ let wiiMotionGranted = false;
 let wiiPenDown = false;
 let wiiLastTime = 0;
 const WII_SENSITIVITY = 0.00045; // lower = slower cursor
-const WII_DEADZONE    = 1.8;     // deg/s below which movement is ignored (kills tremor)
-const WII_SMOOTH      = 0.18;    // 0–1: lower = more smoothing (exponential moving average)
+const WII_DEADZONE    = 3.5;     // deg/s below which movement is ignored (kills tremor)
+const WII_SMOOTH      = 0.09;    // 0–1: lower = more smoothing (exponential moving average)
 
 function setDrawMode(mode) {
   drawMode = 'tilt'; // always wiimote
@@ -1526,9 +1526,9 @@ function onWiiMotion(e) {
   if (Math.abs(gx) < WII_DEADZONE) gx = 0;
   if (Math.abs(gy) < WII_DEADZONE) gy = 0;
 
-  // Inverted: positive rotation moves cursor in opposite direction (natural pointing feel)
-  const rawX = Math.max(0, Math.min(1, tiltX - gx * dt * WII_SENSITIVITY));
-  const rawY = Math.max(0, Math.min(1, tiltY - gy * dt * WII_SENSITIVITY));
+  // Tilt up → cursor up (decrease Y), tilt right → cursor right (increase X)
+  const rawX = Math.max(0, Math.min(1, tiltX + gx * dt * WII_SENSITIVITY));
+  const rawY = Math.max(0, Math.min(1, tiltY + gy * dt * WII_SENSITIVITY));
 
   // Exponential smoothing — blends toward raw target gradually
   lastTiltX = tiltX;
