@@ -1478,9 +1478,9 @@ function sendUndo() {
 let wiiPenDown = false;
 let wiiLastTime = 0;
 
-const WII_SENSITIVITY = 0.0008; // reduced from 0.0018
-const WII_DEADZONE    = 2.5;    // increased from 1.5 to kill more tremor
-const WII_SMOOTH      = 0.25;   // slightly less responsive = smoother lines
+const WII_SENSITIVITY = 0.0004; // halved again
+const WII_DEADZONE    = 4.0;    // higher threshold before any movement registers
+const WII_SMOOTH      = 0.2;    // more smoothing = less jitter in lines
 
 function setDrawMode(mode) { /* wiimote only */ }
 
