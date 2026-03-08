@@ -592,7 +592,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <button class="btn btn-lime btn-lg" id="start-btn" onclick="startGame()" disabled>
       🎮 &nbsp;Start Game
     </button>
-    <p id="start-hint" style="text-align:center;color:var(--muted);font-size:0.85rem;">Need at least 2 players to start</p>
+    <p id="start-hint" style="text-align:center;color:var(--muted);font-size:0.85rem;">Waiting for at least 1 player to join</p>
   </div>
 </div>
 
@@ -676,7 +676,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="mode-toggle">
       <button class="mode-btn active" id="mode-touch-btn" onclick="setDrawMode('touch')">👆 Touch</button>
-      <button class="mode-btn" id="mode-tilt-btn" onclick="setDrawMode('tilt')">📱 Tilt</button>
+      <button class="mode-btn" id="mode-tilt-btn" onclick="setDrawMode('tilt')">🕹️ Wiimote</button>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()" style="margin-left:auto;">🗑️ Clear</button>
     <button class="btn btn-ghost btn-sm" id="undo-btn" onclick="sendUndo()">↩ Undo</button>
@@ -700,13 +700,14 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜ Erase</button>
   </div>
 
-  <!-- Tilt hold-to-draw button (hidden in touch mode) -->
-  <div id="tilt-draw-area" style="display:none;">
-    <button id="draw-hold-btn" 
+  <!-- Wiimote hold-to-draw button (hidden in touch mode) -->
+  <div id="tilt-draw-area" style="display:none;display:flex;gap:8px;">
+    <button id="draw-hold-btn" style="flex:1;"
       ontouchstart="startDrawing()" ontouchend="stopDrawing()" ontouchcancel="stopDrawing()"
       onmousedown="startDrawing()" onmouseup="stopDrawing()">
-      ✏️ HOLD TO DRAW
+      🖊️ HOLD TO DRAW
     </button>
+    <button class="btn btn-ghost" style="flex-shrink:0;padding:0 16px;" onclick="recenterWii()" title="Recenter cursor">⊙ Reset</button>
   </div>
 </div>
 
@@ -945,9 +946,9 @@ function onPlayerJoin(conn, data) {
   updateSetupPlayerList();
   updateHostPlayerList();
 
-  if (Object.keys(hostConns).length >= 2) {
+  if (Object.keys(hostConns).length >= 1) {
     $('start-btn').disabled = false;
-    $('start-hint').textContent = Object.keys(hostConns).length + ' players ready';
+    $('start-hint').textContent = Object.keys(hostConns).length + ' player(s) ready';
   }
 
   notify('👋 ' + data.name + ' joined!');
@@ -1493,12 +1494,16 @@ function sendUndo() {
 }
 
 // =============================================
-//  TILT / MOTION DRAWING
+//  WIIMOTE-STYLE MOTION DRAWING
+//  Uses devicemotion rotationRate (gyroscope angular velocity)
+//  so the cursor moves relative to how you *swing* the phone,
+//  not its absolute orientation — just like a Wiimote pointer.
 // =============================================
 
-let tiltRAF = null;
-let deviceOrientationGranted = false;
-let tiltPenDown = false;
+let wiiMotionGranted = false;
+let wiiPenDown = false;
+let wiiLastTime = 0;
+const WII_SENSITIVITY = 0.0018; // tune: higher = faster cursor
 
 function setDrawMode(mode) {
   drawMode = mode;
@@ -1509,59 +1514,72 @@ function setDrawMode(mode) {
   $('player-canvas').style.pointerEvents = mode === 'touch' ? 'auto' : 'none';
 
   if (mode === 'tilt') {
-    requestTiltPermission();
+    requestWiiPermission();
   } else {
-    tiltPenDown = false;
-    if (tiltRAF) cancelAnimationFrame(tiltRAF);
+    wiiPenDown = false;
+    window.removeEventListener('devicemotion', onWiiMotion);
   }
 }
 
-function requestTiltPermission() {
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // iOS 13+
-    DeviceOrientationEvent.requestPermission()
+function requestWiiPermission() {
+  // iOS 13+ requires explicit permission for DeviceMotionEvent
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
       .then(state => {
-        if (state === 'granted') enableTiltMode();
+        if (state === 'granted') enableWiiMode();
         else { notify('Motion permission denied', 'var(--coral)'); setDrawMode('touch'); }
       })
       .catch(() => { notify('Could not get motion access', 'var(--coral)'); setDrawMode('touch'); });
   } else {
-    enableTiltMode();
+    enableWiiMode();
   }
 }
 
-function enableTiltMode() {
-  deviceOrientationGranted = true;
+function enableWiiMode() {
+  wiiMotionGranted = true;
+  // Start cursor in centre
   tiltX = 0.5; tiltY = 0.5;
   lastTiltX = 0.5; lastTiltY = 0.5;
-  notify('📱 Tilt mode active! Hold button to draw', 'var(--blue)');
-
-  window.addEventListener('deviceorientation', onDeviceOrientation);
+  wiiLastTime = performance.now();
+  notify('🕹️ Wiimote ready! Point & hold to draw', 'var(--blue)');
+  window.addEventListener('devicemotion', onWiiMotion);
 }
 
-function onDeviceOrientation(e) {
+function onWiiMotion(e) {
   if (drawMode !== 'tilt') return;
-  const gamma = e.gamma || 0; // -90 to 90, left-right
-  const beta = e.beta || 45;  // -180 to 180, front-back
+
+  const rr = e.rotationRate;
+  if (!rr) return;
+
+  const now = performance.now();
+  const dt = Math.min(now - wiiLastTime, 50); // cap dt to avoid jumps
+  wiiLastTime = now;
+
+  // rotationRate.gamma = rotation around Z (pointing left/right like a remote) → X axis
+  // rotationRate.beta  = rotation around X (pointing up/down)               → Y axis
+  // Values are in deg/s — integrate over dt to get delta angle, scale to [0,1] canvas space
+  const dx = (rr.gamma || 0) * dt * WII_SENSITIVITY;
+  const dy = (rr.beta  || 0) * dt * WII_SENSITIVITY;
 
   lastTiltX = tiltX;
   lastTiltY = tiltY;
+  tiltX = Math.max(0, Math.min(1, tiltX + dx));
+  tiltY = Math.max(0, Math.min(1, tiltY + dy));
 
-  tiltX = Math.max(0, Math.min(1, (gamma + 45) / 90));
-  tiltY = Math.max(0, Math.min(1, (beta - 5) / 80));
-
-  // Update cursor
+  // Update on-screen cursor
   const container = $('draw-canvas-container');
   const cRect = container.getBoundingClientRect();
   const cursor = $('tilt-cursor');
   cursor.style.left = (tiltX * cRect.width) + 'px';
-  cursor.style.top = (tiltY * cRect.height) + 'px';
-  cursor.className = tiltPenDown ? 'drawing' : '';
+  cursor.style.top  = (tiltY * cRect.height) + 'px';
+  cursor.className  = wiiPenDown ? 'drawing' : '';
 
-  if (tiltPenDown) {
+  // Draw if button held
+  if (wiiPenDown) {
+    const moved = Math.abs(tiltX - lastTiltX) > 0.0005 || Math.abs(tiltY - lastTiltY) > 0.0005;
+    if (!moved) return;
     const canvas = $('player-canvas');
-    if (lastTiltX === tiltX && lastTiltY === tiltY) return;
     const stroke = {
       type: 'line',
       strokeId: currentStrokeId || (currentStrokeId = ++strokeId),
@@ -1576,7 +1594,7 @@ function onDeviceOrientation(e) {
 }
 
 function startDrawing() {
-  tiltPenDown = true;
+  wiiPenDown = true;
   currentStrokeId = ++strokeId;
   const canvas = $('player-canvas');
   const dot = {
@@ -1592,9 +1610,20 @@ function startDrawing() {
 }
 
 function stopDrawing() {
-  tiltPenDown = false;
+  wiiPenDown = false;
   currentStrokeId = null;
   $('draw-hold-btn').classList.remove('active');
+}
+
+function recenterWii() {
+  tiltX = 0.5; tiltY = 0.5;
+  lastTiltX = 0.5; lastTiltY = 0.5;
+  const container = $('draw-canvas-container');
+  const cRect = container.getBoundingClientRect();
+  const cursor = $('tilt-cursor');
+  cursor.style.left = (0.5 * cRect.width) + 'px';
+  cursor.style.top  = (0.5 * cRect.height) + 'px';
+  notify('⊙ Cursor recentered', 'var(--blue)');
 }
 
 // =============================================
