@@ -75,6 +75,24 @@ body {
 .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
+/* ===== SKIP BUTTON ===== */
+.btn-skip {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+.btn-skip:hover { border-color: var(--coral); color: var(--coral); background: rgba(255,107,107,0.08); }
+.btn-skip:active { transform: scale(0.95); }
+
 /* ===== INPUTS ===== */
 .input {
   width: 100%;
@@ -227,21 +245,6 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
 }
 .brush-size-btn.selected { border-color: var(--purple); background: rgba(167,139,250,0.15); }
 .brush-dot { border-radius: 50%; background: var(--white); display: block; }
-
-/* ===== TILT CURSOR ===== */
-#tilt-cursor {
-  position: absolute;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: var(--coral);
-  border: 3px solid white;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 10px rgba(255,107,107,0.7);
-  transition: background 0.2s;
-  z-index: 10;
-}
-#tilt-cursor.drawing { background: var(--lime); box-shadow: 0 0 15px rgba(200,255,0,0.9); }
 
 /* ===== BIG DRAW BUTTON ===== */
 #draw-hold-btn {
@@ -532,6 +535,7 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
   justify-content: center;
   gap: 20px;
   padding: 32px;
+  overflow-y: auto;
 }
 #round-end-overlay.show { display: flex; }
 </style>
@@ -611,6 +615,8 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
         <div class="label">Round <span id="host-round-label">—</span></div>
       </div>
       <div class="timer-ring" id="host-timer">60</div>
+      <!-- Host can skip the current round -->
+      <button class="btn-skip" onclick="hostSkipRound()">⏭ Skip</button>
     </div>
     <div class="canvas-wrapper" style="position:relative;">
       <canvas id="host-canvas"></canvas>
@@ -667,11 +673,13 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
     <div class="timer-ring" id="player-timer" style="width:56px;height:56px;font-size:1rem;">60</div>
   </div>
 
-  <!-- Action buttons row -->
-  <div style="display:flex;gap:8px;">
+  <!-- Action buttons row — skip is on the right -->
+  <div style="display:flex;gap:8px;align-items:center;">
     <button class="btn btn-ghost btn-sm" id="eraser-btn" onclick="toggleEraser()">⬜ Erase</button>
     <button class="btn btn-ghost btn-sm" onclick="recenterWii()">⊙ Center</button>
     <button class="btn btn-ghost btn-sm" onclick="sendClearCanvas()">🗑️ Clear</button>
+    <!-- Drawer can skip their own round -->
+    <button class="btn-skip" style="margin-left:auto;" onclick="playerRequestSkip()">⏭ Skip</button>
   </div>
 
   <!-- Canvas — hold anywhere to draw -->
@@ -725,10 +733,10 @@ textarea.input { resize: vertical; min-height: 160px; line-height: 1.6; }
 
 <!-- ===== ROUND END OVERLAY ===== -->
 <div id="round-end-overlay">
-  <div class="logo" style="font-size:0.9rem;">Round Over!</div>
+  <div class="logo" style="font-size:0.9rem;" id="re-title">Round Over!</div>
   <div style="font-size:1.5rem;font-weight:900;" id="re-word">The word was: <span style="color:var(--lime);" id="re-word-text">—</span></div>
-  <!-- Canvas snapshot shown after round -->
-  <img id="re-canvas-snapshot" style="max-width:360px;width:100%;border-radius:12px;border:3px solid var(--lime);display:none;" alt="drawing"/>
+  <!-- Canvas snapshot — always shown, even on skip -->
+  <img id="re-canvas-snapshot" style="max-width:480px;width:100%;border-radius:12px;border:3px solid var(--lime);display:none;" alt="drawing"/>
   <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px;" id="re-scores"></div>
   <div style="color:var(--muted);font-size:0.85rem;font-weight:700;" id="re-next">Next round starting…</div>
 </div>
@@ -862,6 +870,7 @@ function goHostSetup() {
   $('host-room-code-small').textContent = roomCode;
 
   const joinUrl = window.location.href.split('?')[0] + '?join=' + roomCode;
+  $('join-url-display').textContent = joinUrl;
   generateQR(joinUrl);
 
   peer = new Peer(peerId, { debug: 0 });
@@ -906,6 +915,13 @@ function handleHostMsg(conn, data) {
       hostStrokeHistory = hostStrokeHistory.filter(s => s.strokeId !== data.strokeId);
       redrawHostCanvas();
       broadcast({ type: 'undo', strokeId: data.strokeId });
+      break;
+    // Drawer requested a skip
+    case 'skip':
+      if (hostGameActive) {
+        clearInterval(hostTimer);
+        doEndRound(false, true);
+      }
       break;
     case 'guess':
       handleGuess(conn.peer, data.guess);
@@ -1083,7 +1099,7 @@ function startRound() {
 
     if (hostTimeLeft <= 0) {
       clearInterval(hostTimer);
-      doEndRound(false);
+      doEndRound(false, false);
     }
   }, 1000);
 }
@@ -1122,20 +1138,21 @@ function handleGuess(guesserPeerId, guessText) {
     const allGuessed = nonDrawers.length > 0 && nonDrawers.every(pid => hostConns[pid]?.guessed);
     if (allGuessed) {
       clearInterval(hostTimer);
-      setTimeout(() => doEndRound(true), 1500);
+      setTimeout(() => doEndRound(true, false), 1500);
     }
   }
 }
 
-function doEndRound(allGuessed) {
+// skipped=true means the round was cut short — no scores awarded, but drawing still shown
+function doEndRound(allGuessed, skipped) {
   clearInterval(hostTimer);
   hostGameActive = false;
 
   const word = hostGameWords[hostWordIdx];
   const scores = buildPlayerList().sort((a,b) => b.score - a.score);
 
-  broadcast({ type: 'round-end', word, scores });
-  showRoundEndOverlay(word, scores);
+  broadcast({ type: 'round-end', word, scores, skipped });
+  showRoundEndOverlay(word, scores, skipped);
 
   hostWordIdx++;
 
@@ -1155,10 +1172,19 @@ function endGame() {
   showGameEndOverlay(scores);
 }
 
-function showRoundEndOverlay(word, scores) {
+// Host skip button
+function hostSkipRound() {
+  if (!hostGameActive) return;
+  clearInterval(hostTimer);
+  doEndRound(false, true);
+}
+
+function showRoundEndOverlay(word, scores, skipped) {
+  // Update title to reflect skip
+  $('re-title').textContent = skipped ? '⏭ Skipped!' : 'Round Over!';
   $('re-word-text').textContent = word;
 
-  // Capture canvas snapshot
+  // Always show the drawing, even on skip — so players can see what was drawn
   const snapshot = $('re-canvas-snapshot');
   const canvas = $('host-canvas');
   if (canvas && canvas.width > 0) {
@@ -1186,8 +1212,17 @@ function hideRoundEnd() {
 }
 
 function showGameEndOverlay(scores) {
-  $('re-word-text').textContent = '🎉 Game Over!';
+  $('re-title').textContent = '🏆 Game Over!';
   $('re-word').innerHTML = '🏆 Final Scores';
+  // Show last drawing at game end too
+  const snapshot = $('re-canvas-snapshot');
+  const canvas = $('host-canvas');
+  if (canvas && canvas.width > 0) {
+    snapshot.src = canvas.toDataURL('image/png');
+    snapshot.style.display = 'block';
+  } else {
+    snapshot.style.display = 'none';
+  }
   $('re-scores').innerHTML = scores.map((p, i) => `
     <div class="score-row">
       <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</span>
@@ -1305,7 +1340,7 @@ function handlePlayerMsg(data) {
       break;
 
     case 'round-end':
-      showPlayerRoundEnd(data.word, data.scores);
+      showPlayerRoundEnd(data.word, data.scores, data.skipped);
       break;
 
     case 'game-end':
@@ -1325,14 +1360,14 @@ function updateWaitingPlayerList(players) {
   `).join('');
 }
 
-function showPlayerRoundEnd(word, scores) {
-  notify('The word was: ' + word, 'var(--blue)');
+function showPlayerRoundEnd(word, scores, skipped) {
+  notify((skipped ? '⏭ Skipped! ' : '') + 'The word was: ' + word, 'var(--blue)');
   updateWaitingPlayerList(scores);
 
   if (myTurn) {
-    // Show them a brief "round over" state
     showScreen('player-waiting');
-    $('pw-name').textContent = '⏰ Round over!';
+    $('pw-name').textContent = skipped ? '⏭ You skipped!' : '⏰ Round over!';
+    myTurn = false;
   }
 }
 
@@ -1340,6 +1375,16 @@ function showPlayerGameEnd(scores) {
   showScreen('player-waiting');
   $('pw-name').textContent = '🏆 Game Over!';
   updateWaitingPlayerList(scores);
+}
+
+// Drawer presses Skip on their phone — sends request to host
+function playerRequestSkip() {
+  if (!myTurn) return;
+  send(hostConn, { type: 'skip' });
+  // Immediately move to waiting — host will confirm via round-end broadcast
+  myTurn = false;
+  showScreen('player-waiting');
+  $('pw-name').textContent = '⏭ Skipping…';
 }
 
 function startPlayerTimer() {
@@ -1479,15 +1524,11 @@ function sendUndo() {
     const removeId = strokeId;
     send(hostConn, { type: 'undo', strokeId: removeId });
     strokeId = Math.max(0, strokeId - 1);
-    // Locally: we can't easily undo without a local history, so just clear+redraw
-    // For simplicity send undo and let host handle
   }
 }
 
 // =============================================
 //  WIIMOTE-STYLE MOTION DRAWING
-//  Uses devicemotion.rotationRate — angular velocity in deg/s.
-//  Cursor moves relative to how you swing the phone, just like a Wiimote.
 // =============================================
 
 let wiiPenDown = false;
@@ -1534,9 +1575,8 @@ function onWiiMotion(e) {
   const dt = Math.min(now - wiiLastTime, 50);
   wiiLastTime = now;
 
-  // gamma = left/right swing, beta = up/down swing
   let gx = rr.gamma || 0;
-  let gy = rr.alpha || 0;  // alpha is the up/down axis on this device
+  let gy = rr.alpha || 0;
 
   if (Math.abs(gx) < WII_DEAD_X) gx = 0;
   if (Math.abs(gy) < WII_DEAD_Y) gy = 0;
@@ -1570,7 +1610,6 @@ function onWiiMotion(e) {
 }
 
 function wiiTouchDown(e) {
-  // If overlay still visible, let the click fall through to activateWiimote
   const overlay = $('wii-activate');
   if (overlay && overlay.style.display !== 'none') return;
   e.preventDefault();
@@ -1586,7 +1625,6 @@ function wiiTouchDown(e) {
   };
   drawOnCanvas(canvas, dot);
   send(hostConn, { type: 'stroke', stroke: dot });
-  // Visual feedback — border pulse
   $('draw-canvas-container').style.borderColor = 'var(--coral)';
 }
 
@@ -1600,11 +1638,6 @@ function wiiTouchUp(e) {
 function recenterWii() {
   tiltX = 0.5; tiltY = 0.5;
   lastTiltX = 0.5; lastTiltY = 0.5;
-  const container = $('draw-canvas-container');
-  const cRect = container.getBoundingClientRect();
-  const cursor = $('tilt-cursor');
-  cursor.style.left = (0.5 * cRect.width) + 'px';
-  cursor.style.top  = (0.5 * cRect.height) + 'px';
   notify('⊙ Cursor recentered', 'var(--blue)');
 }
 
@@ -1613,7 +1646,6 @@ function recenterWii() {
 // =============================================
 
 function buildToolbar() {
-  // Colors
   const palette = $('color-palette');
   palette.innerHTML = COLORS.map(c => `
     <div class="color-swatch ${c === selectedColor ? 'selected' : ''}"
@@ -1621,7 +1653,6 @@ function buildToolbar() {
          onclick="selectColor('${c}',this)" title="${c}"></div>
   `).join('');
 
-  // Brushes
   const brushContainer = $('brush-sizes');
   brushContainer.innerHTML = BRUSH_SIZES.map(s => `
     <div class="brush-size-btn ${s === brushSize ? 'selected' : ''}" onclick="selectBrush(${s},this)" title="${s}px">
@@ -1660,8 +1691,6 @@ function addGuessToFeed(feedEl, name, guess, correct, avatarIdx) {
                     <span class="gtext">${escHtml(guess)}${correct ? ' ✅' : ''}</span>`;
   feedEl.appendChild(item);
   feedEl.scrollTop = feedEl.scrollHeight;
-
-  // Keep feed trim
   while (feedEl.children.length > 30) feedEl.removeChild(feedEl.firstChild);
 }
 
@@ -1693,7 +1722,6 @@ function setupResizeObserver() {
     const w = Math.floor(container.clientWidth);
     const h = Math.floor(container.clientHeight);
     if (w > 0 && h > 0 && (hostCanvas.width !== w || hostCanvas.height !== h)) {
-      // Save current drawing
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = hostCanvas.width;
       tempCanvas.height = hostCanvas.height;
@@ -1729,7 +1757,6 @@ document.addEventListener('DOMContentLoaded', () => {
   buildToolbar();
   setupResizeObserver();
 
-  // Resize host canvas when screen shows
   const observer = new MutationObserver(() => {
     if ($('screen-host-game').classList.contains('active')) {
       setTimeout(() => resizeCanvas($('host-canvas')), 100);
